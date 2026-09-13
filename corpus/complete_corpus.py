@@ -37,8 +37,9 @@ ROOT = Path(__file__).resolve().parent
 MANIFEST_PATH = ROOT / "manifest.json"
 
 USER_AGENT = (
-    "AI-Research-Navigator-Corpus-Builder/1.0 "
-    "(intern assignment; one-time fetch; contact: koundinya@example.com)"
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/120.0.0.0 Safari/537.36"
 )
 HEADERS = {"User-Agent": USER_AGENT}
 
