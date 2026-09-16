@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import typer
 
+from research_navigator.chunk.dispatch import chunk_corpus
+from research_navigator.common.manifest import load_manifest
 from research_navigator.common.qdrant import check_health
 from research_navigator.config import get_settings
 from research_navigator.logging import configure_logging
@@ -39,6 +41,16 @@ def parse(write: bool = True) -> None:
     typer.echo(
         f"Parsed {len(docs)} documents, {total_sections} sections, {with_warnings} with warnings."
     )
+
+
+@app.command("chunk")
+def chunk() -> None:
+    """Chunk all cached parsed documents into retrievable chunks with payloads."""
+    settings = get_settings()
+    manifest = load_manifest(settings.corpus_dir / "manifest.json")
+    results = chunk_corpus(manifest, settings)
+    total = sum(len(c) for c in results.values())
+    typer.echo(f"chunked {len(results)} documents into {total} chunks -> {settings.chunk_dir}")
 
 
 if __name__ == "__main__":

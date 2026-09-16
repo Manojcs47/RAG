@@ -7,10 +7,16 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from research_navigator.chunk.settings import ChunkingSettings
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env", env_prefix="RN_", env_file_encoding="utf-8", extra="ignore"
+        env_file=".env",
+        env_prefix="RN_",
+        env_file_encoding="utf-8",
+        env_nested_delimiter="__",
+        extra="ignore",
     )
 
     # --- Qdrant connection ---
@@ -41,6 +47,15 @@ class Settings(BaseSettings):
     corpus_dir: Path = Path("corpus")
     documents_dir: Path = Path("documents")
     parsed_dir: Path = Path("data/parsed")  # NEW: cached IR from Session 2
+
+    # paths
+    chunk_dir: Path = Path("data/chunks")  # NEW (Session 3)
+
+    # chunking (NEW, Session 3)
+    # Tokenizer used to MEASURE chunk length. Tracks the dense embedding model,
+    # because that model's 512-token limit is the real constraint on chunk size.
+    chunk_tokenizer_model: str = "BAAI/bge-small-en-v1.5"
+    chunking: ChunkingSettings = ChunkingSettings()
 
 
 @lru_cache(maxsize=1)
