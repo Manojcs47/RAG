@@ -215,3 +215,80 @@ filtering, top_k + refusal threshold from config.
    query=SparseVector...)], query=FusionQuery(fusion=RRF)) works on this collection; prefetch limit must
    be >= final limit. Re-verify LangGraph API at Session 7. **
 === END CHECKPOINT ===
+=== CHECKPOINT: Session 5 complete (M2 retrieval — query understanding + hybrid retrieval) ===
+
+PROJECT: AI Research Navigator — citation-grounded RAG + LangGraph agent over 50 AI/ML docs.
+STACK: Qdrant (v1.18.2 pinned; client 1.19.1 verified), LangGraph, Python 3.12.
+DONE: M0 setup; M1a parse; M1b chunk; M1c–M1f ingest (hybrid Qdrant collection);
+      M2 retrieval (this session) -> filtered, fused, ranked chunks + refusal signal.
+
+COMPLETED THIS SESSION (M2 retrieval):
+- New package src/research_navigator/retrieve/:
+  - settings.py: RetrieveSettings (top_k=8, prefetch_limit=40 forced>=top_k, fusion=rrf,
+    dense_only=False, refusal_threshold=0.35 [COSINE], recency_window_years=2, infer_filters,
+    plus configurable content_type/recency/foundational trigger phrases — no hardcoding).
+  - vocab.py: QueryCatalog.from_manifest_rows -> tag vocab + content types DERIVED FROM MANIFEST
+    (corpus-swap safe). match_tags: normalized whole-token/phrase match; canonical casing preserved
+    (RAG, long_context). No LLM.
+  - query_understanding.py: analyze() PURE fn -> QueryAnalysis(intent, InferredFilters, reasons[]).
+    Deterministic rules: recency cue|explicit year|"last N years/months" -> year_gte; tag match;
+    content_type triggers (intersected w/ corpus); foundational cue -> is_foundational=True.
+    Coarse advisory intent (CONCEPT/RECENT/COMPARE/PAPER_SPECIFIC/FIND_PAPERS) — NOT the M3 router.
+  - filters.py: build_qdrant_filter -> models.Filter (must=AND across fields; MatchAny=OR within
+    tags/content_types). None when empty. Applied SERVER-SIDE (in each prefetch branch), not in Python.
+  - ports.py: QueryEmbedder + HybridSearcher Protocols (retriever decoupled from store/embedder).
+  - retriever.py: analyze -> embed_query -> build filter -> store.hybrid_query (RRF/DBSF; dense-only
+    drops sparse) -> store.dense_query for COSINE confidence -> refusal = confidence<threshold or no hits.
+    RECENT intent re-sorts chronologically. Filter-relaxation fallback: filtered result empty ->
+    retry unfiltered + log warning (no false refusal, no silent failure).
+  - factory.py: load_catalog(manifest) + build_retriever. __init__.py exports public API.
+- PATCHES to existing files (additive; see PATCHES.md):
+  - ingest/store.py: + Hit dataclass, hybrid_query(), dense_query() (all qdrant calls stay isolated).
+  - ingest/embedder.py: + QueryVectors, Embedder.embed_query (bge QUERY path + bm25 query encoder).
+  - config.py: + retrieve: RetrieveSettings (RN_RETRIEVE__*). cli.py: + thin `analyze`, `search`.
+- tests/test_retrieve.py (18): filter inference (recency/explicit-year/last-N/tags/content-type/
+  foundational/compare/plain/disabled), filter building, e2e hybrid ranking, server-side filter
+  exclusion, dense-only, cosine refusal on off-corpus, chronological RECENT order, relaxation recovery.
+  Hermetic via QdrantClient(":memory:") + FakeEmbedder (S4 pattern).
+
+VERIFIED: ruff + ruff format clean; mypy --strict clean (14 files, src-scoped); 18 tests pass.
+  Live :memory: demo: intent+reasons trace correct; "recent" excludes 2017 paper; RRF ranks;
+  off-corpus query -> confidence 0.0 -> refused=True (chunks still ranked, gate is cosine-only).
+  Qdrant Query API re-verified on client 1.19.1: prefetch(dense)+prefetch(bm25 SparseVector)+
+  FusionQuery(RRF) with per-branch Filter works; dense-only probe returns cosine; DBSF also works;
+  prefetch limit forced >= final limit.
+
+KEY DECISIONS THIS SESSION (S5 open items now resolved -> write as ADRs):
+- Filter inference = DETERMINISTIC RULES, not LLM (testable per M5; manifest-derived vocab; example
+  in spec is pattern-based). LLM pass can augment later behind same analyze() signature.
+- Fusion = RRF default; DBSF + dense_only are config switches (sets up M4 dense-vs-hybrid comparison).
+- Refusal/score-normalization = threshold on max DENSE COSINE via a dedicated dense probe; RRF fused
+  scores are rank-based (~small) and NOT comparable to the 0.35 cosine threshold — critical trap avoided.
+- Filters applied via Qdrant primitives inside each prefetch branch (server-side), never post-hoc.
+- Store stays the only place with qdrant-client calls; retriever depends on Protocols.
+
+CURRENT STATE:
+- `research-navigator search "<q>"` -> ranked chunks or graceful refusal; `analyze "<q>"` -> filters.
+- Retrieval returns RetrievalResult(analysis, chunks, confidence, refused, fusion, dense_only, top_k,
+  filtered) — everything S6 generation needs to cite-or-refuse.
+- NOT yet generated: no inline [n] citations / structured citation blocks / citation dedup yet.
+
+OPEN ITEMS / TODO carried forward:
+- Run real `search` in your env (needs HF egress for FastEmbed; confirm bge query-embed path).
+- Confirm on Docker server (not :memory:) that payload indexes accelerate filtered queries.
+- Filter relaxation is currently ALL-OR-NOTHING; consider INCREMENTAL relaxation (drop recency before
+  foundational) — log to docs/OBSERVATIONS.md. Also note recent+foundational can be contradictory.
+- Carried: verify arxiv-2408.00118 (Gemma 2) & arxiv-2501.12948 (DeepSeek-R1) manifest ids.
+- ADRs to write (rubric wants >=5): (1) embedding backend=FastEmbed, (2) hybrid schema + server-side
+  IDF, (3) content-addressed ids + idempotent upsert, (4) filter inference = rules-not-LLM,
+  (5) fusion=RRF + cosine-based refusal.
+- Re-verify LangGraph API at start of Session 7.
+
+STOPPED AT: end of M2 retrieval. Corpus is queryable: filtered + fused + ranked, with a calibrated
+refusal signal in cosine space.
+
+NEXT STEP (Session 6 = M2 generation): inline [n] citations + structured citation blocks
+(title, authors first-et-al for >=3, year, source, section, URL), citation dedup (collapse
+same-doc chunks to most-relevant section), consume res.refused for graceful low-confidence decline.
+20 held-out Qs each cite-or-refuse; no fabricated citations.
+=== END CHECKPOINT ===
