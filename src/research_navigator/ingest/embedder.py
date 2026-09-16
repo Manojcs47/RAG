@@ -1,124 +1,116 @@
-"""Embedding backend: dense (bge-small) + sparse (BM25), behind a Protocol.
+"""Embeddings for ingest (passages) and retrieval (queries).
 
-**Backend decision (S4):** FastEmbed, not sentence-transformers. FastEmbed is OSS,
-ONNX-based (no torch), integrates natively with Qdrant, and produces *both* the dense
-(``BAAI/bge-small-en-v1.5``, 384-dim) and sparse (``Qdrant/bm25``) representations we
-need from one dependency.
-
-The concrete backend is hidden behind the :class:`Embedder` Protocol so tests can inject
-a deterministic fake with no model download or network, and so a future backend swap
-touches one factory. Unlike the tokenizer's whitespace fallback, there is **no** silent
-fallback here: a fake embedder in production would corrupt the whole index, so a failure
-to build the real backend is raised loudly.
-
-BM25 note: FastEmbed computes only the term-frequency component client-side. Inverse
-document frequency is computed *server-side* by Qdrant when the sparse vector is
-configured with ``Modifier.IDF`` (see :mod:`research_navigator.ingest.schema`). This
-module therefore emits raw BM25 sparse vectors and relies on the collection's IDF
-modifier for correct weighting.
+Dense: BAAI/bge-small-en-v1.5 (384-dim, ONNX/no-torch via fastembed).
+Sparse: Qdrant/bm25 — emits RAW term frequencies; IDF is applied server-side by
+the collection (Modifier.IDF set at creation). One dependency (fastembed) gives
+both. ``build_embedder`` fails LOUD: there is no fake/degraded fallback in prod.
 """
 
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import NamedTuple, Protocol, runtime_checkable
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
-import structlog
+if TYPE_CHECKING:
+    from ..config import EmbeddingSettings
 
-log = structlog.get_logger(__name__)
 
-
-class SparseVec(NamedTuple):
-    """A sparse vector as parallel index/value lists (Qdrant's on-wire shape)."""
+@dataclass(frozen=True)
+class SparseVec:
+    """A sparse vector: parallel term-id indices and raw-TF values."""
 
     indices: list[int]
     values: list[float]
 
 
+@dataclass(frozen=True)
+class QueryVectors:
+    """A dense + sparse encoding of one text (passage or query)."""
+
+    dense: list[float]
+    sparse: SparseVec
+
+
 @runtime_checkable
 class Embedder(Protocol):
-    """Minimal embedding surface the ingest pipeline depends on."""
+    """Encodes passages (ingest) and queries (retrieval)."""
 
     @property
     def dense_dim(self) -> int: ...
 
-    @property
-    def dense_model(self) -> str: ...
+    def embed_passages(self, texts: Sequence[str]) -> list[QueryVectors]: ...
 
-    @property
-    def sparse_model(self) -> str: ...
-
-    def embed_documents(self, texts: Sequence[str]) -> list[list[float]]:
-        """Dense passage embeddings, one per input text."""
-        ...
-
-    def embed_sparse(self, texts: Sequence[str]) -> list[SparseVec]:
-        """Sparse (BM25) passage embeddings, one per input text."""
-        ...
+    def embed_query(self, text: str) -> QueryVectors: ...
 
 
 class FastEmbedEmbedder:
-    """Real backend using FastEmbed's ONNX dense + BM25 sparse models."""
+    """FastEmbed-backed dense+sparse embedder.
+
+    Passages use the plain document embedding path; queries use the model's
+    query path (bge query instruction + bm25 query encoder). Dense dimension is
+    *probed* from the model, never hardcoded.
+    """
 
     def __init__(self, dense_model: str, sparse_model: str) -> None:
-        # Imported lazily: FastEmbed pulls onnxruntime and downloads model files on first
-        # use, so importing at call time keeps unit tests (which inject a fake) hermetic.
-        from fastembed import SparseTextEmbedding, TextEmbedding
+        try:
+            from fastembed import SparseTextEmbedding, TextEmbedding
+        except ImportError as exc:  # fail loud, actionable
+            raise RuntimeError(
+                "fastembed is required for embeddings but is not installed. "
+                "Install it (`uv add fastembed`) or run in the Docker image."
+            ) from exc
 
-        self._dense_model_name = dense_model
-        self._sparse_model_name = sparse_model
-        self._dense = TextEmbedding(model_name=dense_model)
-        self._sparse = SparseTextEmbedding(model_name=sparse_model)
-        # Probe the true output dimension rather than hardcoding 384: keeps the collection
-        # schema correct if the dense model is swapped via config.
+        self._dense: Any = TextEmbedding(model_name=dense_model)
+        self._sparse: Any = SparseTextEmbedding(model_name=sparse_model)
         probe = next(iter(self._dense.embed(["dimension probe"])))
-        self._dim = len(probe)
-        log.info(
-            "embedder_ready",
-            dense_model=dense_model,
-            sparse_model=sparse_model,
-            dense_dim=self._dim,
-        )
+        self._dense_dim = len(probe)
 
     @property
     def dense_dim(self) -> int:
-        return self._dim
+        return self._dense_dim
 
-    @property
-    def dense_model(self) -> str:
-        return self._dense_model_name
+    @staticmethod
+    def _to_sparse(embedding: Any) -> SparseVec:
+        return SparseVec(
+            indices=[int(i) for i in embedding.indices],
+            values=[float(v) for v in embedding.values],
+        )
 
-    @property
-    def sparse_model(self) -> str:
-        return self._sparse_model_name
-
-    def embed_documents(self, texts: Sequence[str]) -> list[list[float]]:
-        return [[float(x) for x in vec] for vec in self._dense.embed(list(texts))]
-
-    def embed_sparse(self, texts: Sequence[str]) -> list[SparseVec]:
-        out: list[SparseVec] = []
-        for emb in self._sparse.embed(list(texts)):
+    def embed_passages(self, texts: Sequence[str]) -> list[QueryVectors]:
+        docs = list(texts)
+        dense_it = self._dense.embed(docs)
+        sparse_it = self._sparse.embed(docs)
+        out: list[QueryVectors] = []
+        for dense, sparse in zip(dense_it, sparse_it, strict=True):
             out.append(
-                SparseVec(
-                    indices=[int(i) for i in emb.indices],
-                    values=[float(v) for v in emb.values],
+                QueryVectors(
+                    dense=[float(x) for x in dense],
+                    sparse=self._to_sparse(sparse),
                 )
             )
         return out
 
-
-def build_embedder(dense_model: str, sparse_model: str) -> Embedder:
-    """Construct the real embedding backend, failing loudly if it cannot load."""
-    try:
-        return FastEmbedEmbedder(dense_model, sparse_model)
-    except Exception as exc:
-        log.error(
-            "embedder_build_failed",
-            dense_model=dense_model,
-            sparse_model=sparse_model,
-            error=str(exc),
+    def embed_query(self, text: str) -> QueryVectors:
+        dense = next(iter(self._dense.query_embed(text)))
+        sparse = next(iter(self._sparse.query_embed(text)))
+        return QueryVectors(
+            dense=[float(x) for x in dense],
+            sparse=self._to_sparse(sparse),
         )
+
+
+def build_embedder(settings: EmbeddingSettings) -> Embedder:
+    """Construct the production embedder. Fails loud on any load error — never
+    returns a fake or degraded embedder."""
+    try:
+        embedder: Embedder = FastEmbedEmbedder(
+            dense_model=settings.dense_model,
+            sparse_model=settings.sparse_model,
+        )
+    except Exception as exc:
         raise RuntimeError(
-            f"Failed to build FastEmbed backend (dense={dense_model!r}, "
-            f"sparse={sparse_model!r}): {exc}"
+            f"failed to build embedder (dense={settings.dense_model!r}, "
+            f"sparse={settings.sparse_model!r}): {exc}"
         ) from exc
+    return embedder

@@ -45,6 +45,7 @@ def _default_policies() -> dict[ContentType, ChunkPolicy]:
 class ChunkingSettings(BaseModel):
     """Top-level chunking configuration, nested under ``Settings.chunking``."""
 
+    tokenizer_model: str = "BAAI/bge-small-en-v1.5"
     default: ChunkPolicy = ChunkPolicy()
     per_content_type: dict[ContentType, ChunkPolicy] = Field(default_factory=_default_policies)
     # Abstracts are emitted as a single distinct chunk unless they exceed this,

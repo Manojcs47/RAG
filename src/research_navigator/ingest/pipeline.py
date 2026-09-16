@@ -23,10 +23,9 @@ import structlog
 from qdrant_client import models
 
 from research_navigator.chunk.models import Chunk
-from research_navigator.common.manifest import Manifest
+from research_navigator.common.manifest import load_manifest
 from research_navigator.common.types import ContentType
 from research_navigator.config import Settings
-from research_navigator.ingest import schema
 from research_navigator.ingest.embedder import Embedder
 from research_navigator.ingest.ids import point_id
 from research_navigator.ingest.models import (
@@ -36,14 +35,14 @@ from research_navigator.ingest.models import (
     ValidationIssue,
     ValidationReport,
 )
-from research_navigator.ingest.store import VectorStore
+from research_navigator.ingest.store import PointRecord, RnStore
 
 log = structlog.get_logger(__name__)
 
 
 def load_chunks(settings: Settings, doc_id: str) -> list[Chunk] | None:
     """Load the cached chunks for a document, or ``None`` if the cache is absent."""
-    path = settings.chunk_dir / f"{doc_id}.json"
+    path = settings.paths.chunks_dir / f"{doc_id}.json"
     if not path.exists():
         return None
     raw = json.loads(path.read_text(encoding="utf-8"))
@@ -55,38 +54,21 @@ def _desired_index(chunks: Iterable[Chunk]) -> dict[str, Chunk]:
     return {point_id(c.doc_id, c.chunk_index, c.content_hash): c for c in chunks}
 
 
-def _points_for(
+def _records_for(
     ids: Sequence[str], desired: dict[str, Chunk], embedder: Embedder
-) -> list[models.PointStruct]:
-    """Embed and build point structs for exactly the given ids (order preserved)."""
+) -> list[PointRecord]:
+    """Embed and build point records for exactly the given ids (order preserved)."""
     chunks = [desired[i] for i in ids]
     texts = [c.text for c in chunks]
-    dense = embedder.embed_documents(texts)
-    sparse = embedder.embed_sparse(texts)
-    points: list[models.PointStruct] = []
-    for pid, chunk, dvec, svec in zip(ids, chunks, dense, sparse, strict=True):
-        points.append(
-            models.PointStruct(
-                id=pid,
-                vector={
-                    schema.DENSE_VECTOR: dvec,
-                    schema.SPARSE_VECTOR: models.SparseVector(
-                        indices=svec.indices, values=svec.values
-                    ),
-                },
-                payload=chunk.payload(),
-            )
-        )
-    return points
+    vectors = embedder.embed_passages(texts)
+    return [
+        PointRecord(id=pid, dense=vec.dense, sparse=vec.sparse, payload=chunk.payload())
+        for pid, chunk, vec in zip(ids, chunks, vectors, strict=True)
+    ]
 
 
-def ingest_doc(
-    store: VectorStore,
-    embedder: Embedder,
-    chunks: Sequence[Chunk],
-    *,
-    doc_id: str,
-    batch_size: int = 128,
+def _ingest_chunks(
+    store: RnStore, embedder: Embedder, chunks: Sequence[Chunk], *, doc_id: str
 ) -> DocIngestResult:
     """Idempotently sync one document's chunks into the collection."""
     desired = _desired_index(chunks)
@@ -97,10 +79,9 @@ def ingest_doc(
     unchanged = len(desired.keys() & existing)
 
     if to_add:
-        points = _points_for(to_add, desired, embedder)
-        store.upsert(points, batch_size=batch_size)
+        store.upsert(_records_for(to_add, desired, embedder))
     if to_delete:
-        store.delete(to_delete, batch_size=batch_size)
+        store.delete(to_delete)
 
     log.info(
         "ingest_doc_done",
@@ -114,18 +95,30 @@ def ingest_doc(
     )
 
 
+def ingest_doc(
+    store: RnStore, embedder: Embedder, settings: Settings, doc_id: str
+) -> DocIngestResult:
+    """Idempotently sync a single document's cached chunks into the collection."""
+    if not store.exists():
+        store.create()
+    chunks = load_chunks(settings, doc_id)
+    if chunks is None:
+        raise FileNotFoundError(f"no cached chunks for doc_id={doc_id!r}")
+    return _ingest_chunks(store, embedder, chunks, doc_id=doc_id)
+
+
 def ingest_corpus(
-    settings: Settings,
-    store: VectorStore,
+    store: RnStore,
     embedder: Embedder,
-    manifest: Manifest,
+    settings: Settings,
     *,
     doc_ids: Iterable[str] | None = None,
 ) -> IngestReport:
     """Ensure the collection exists, then idempotently ingest each requested document."""
     if not store.exists():
-        store.create(embedder.dense_dim)
+        store.create()
 
+    manifest = load_manifest(settings.paths.manifest)
     wanted = set(doc_ids) if doc_ids is not None else None
     results: list[DocIngestResult] = []
     for entry in manifest.documents:
@@ -135,15 +128,7 @@ def ingest_corpus(
         if chunks is None:
             log.warning("ingest_chunks_missing", doc_id=entry.doc_id)
             continue
-        results.append(
-            ingest_doc(
-                store,
-                embedder,
-                chunks,
-                doc_id=entry.doc_id,
-                batch_size=settings.ingest_upsert_batch_size,
-            )
-        )
+        results.append(_ingest_chunks(store, embedder, chunks, doc_id=entry.doc_id))
 
     report = IngestReport(collection=store.collection, docs=results)
     log.info(
@@ -157,21 +142,30 @@ def ingest_corpus(
     return report
 
 
-def collection_stats(store: VectorStore, manifest: Manifest) -> CollectionStats:
+def _eq_filter(field: str, value: bool | int | str) -> models.Filter:
+    return models.Filter(
+        must=[models.FieldCondition(key=field, match=models.MatchValue(value=value))]
+    )
+
+
+def collection_stats(store: RnStore, settings: Settings) -> CollectionStats:
     """Point counts overall and grouped by content_type / year / foundational flag."""
-    by_content_type = {ct.value: store.count_where("content_type", ct.value) for ct in ContentType}
+    manifest = load_manifest(settings.paths.manifest)
+    by_content_type = {
+        ct.value: store.count_where(_eq_filter("content_type", ct.value)) for ct in ContentType
+    }
     years = sorted({e.year for e in manifest.documents})
-    by_year = {y: store.count_where("year", y) for y in years}
+    by_year = {y: store.count_where(_eq_filter("year", y)) for y in years}
     return CollectionStats(
         collection=store.collection,
         total_points=store.count(),
         by_content_type=by_content_type,
         by_year=by_year,
-        foundational=store.count_where("is_foundational", True),
+        foundational=store.count_where(_eq_filter("is_foundational", True)),
     )
 
 
-def validate_corpus(settings: Settings, store: VectorStore, manifest: Manifest) -> ValidationReport:
+def validate_corpus(store: RnStore, settings: Settings) -> ValidationReport:
     """Check the collection matches the chunk cache: no missing, stale, or orphan points."""
     issues: list[ValidationIssue] = []
     expected = 0
@@ -185,13 +179,14 @@ def validate_corpus(settings: Settings, store: VectorStore, manifest: Manifest) 
             issues=[ValidationIssue(doc_id=None, kind="missing_collection", detail="absent")],
         )
 
+    manifest = load_manifest(settings.paths.manifest)
     for entry in manifest.documents:
         chunks = load_chunks(settings, entry.doc_id)
         if chunks is None:
             continue
         desired = set(_desired_index(chunks).keys())
         expected += len(desired)
-        existing = store.existing_ids_for_doc(entry.doc_id)
+        existing = {str(pid) for pid in store.existing_ids_for_doc(entry.doc_id)}
         missing = desired - existing
         stale = existing - desired
         if missing:

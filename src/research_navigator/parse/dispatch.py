@@ -32,12 +32,12 @@ def parse_document(entry: ManifestEntry, corpus_root: Path, repo_root: Path) -> 
 
 
 def parse_corpus(settings: Settings, *, write: bool = True) -> list[ParsedDocument]:
-    corpus_root = settings.corpus_dir
+    corpus_root = settings.paths.corpus_dir
     repo_root = Path(".")
     manifest = load_manifest(corpus_root / "manifest.json")
 
     if write:
-        settings.parsed_dir.mkdir(parents=True, exist_ok=True)
+        settings.paths.parsed_dir.mkdir(parents=True, exist_ok=True)
 
     results: list[ParsedDocument] = []
     for entry in manifest.documents:
@@ -53,7 +53,7 @@ def parse_corpus(settings: Settings, *, write: bool = True) -> list[ParsedDocume
         if parsed.warnings:
             log.warning("parse_warnings", doc_id=entry.doc_id, warnings=parsed.warnings)
         if write:
-            out = settings.parsed_dir / f"{entry.doc_id}.json"
+            out = settings.paths.parsed_dir / f"{entry.doc_id}.json"
             out.write_text(parsed.model_dump_json(indent=2), encoding="utf-8")
         results.append(parsed)
 

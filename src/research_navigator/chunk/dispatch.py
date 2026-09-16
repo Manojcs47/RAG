@@ -36,18 +36,18 @@ def chunk_corpus(
     tokenizer: Tokenizer | None = None,
 ) -> dict[str, list[Chunk]]:
     """Chunk every document with a cached IR; return ``{doc_id: chunks}``."""
-    tok = tokenizer or build_tokenizer(settings.chunk_tokenizer_model)
-    settings.chunk_dir.mkdir(parents=True, exist_ok=True)
+    tok = tokenizer or build_tokenizer(settings.chunking.tokenizer_model)
+    settings.paths.chunks_dir.mkdir(parents=True, exist_ok=True)
 
     results: dict[str, list[Chunk]] = {}
     for entry in manifest.documents:
-        parsed_path = settings.parsed_dir / f"{entry.doc_id}.json"
+        parsed_path = settings.paths.parsed_dir / f"{entry.doc_id}.json"
         if not parsed_path.exists():
             log.warning("chunk_parsed_missing", doc_id=entry.doc_id, path=str(parsed_path))
             continue
         doc = load_parsed(parsed_path)
         chunks = chunk_document(doc, entry, tok, settings.chunking)
-        write_chunks(settings.chunk_dir / f"{entry.doc_id}.json", chunks)
+        write_chunks(settings.paths.chunks_dir / f"{entry.doc_id}.json", chunks)
         results[entry.doc_id] = chunks
         log.info("chunk_document_done", doc_id=entry.doc_id, n_chunks=len(chunks))
 

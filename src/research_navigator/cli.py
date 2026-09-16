@@ -1,138 +1,179 @@
-"""Top-level Typer CLI. Entrypoints stay thin; logic lives in packages.
+"""Thin Typer CLI. No business logic here — every command wires config +
+factories + pipeline/retrieval and prints the result.
 
-Commands by session: ``healthcheck`` (S1), ``parse`` (S2), ``chunk`` (S3),
-``ingest`` / ``validate`` / ``reindex`` / ``stats`` (S4).
+Expected S4 factory/pipeline surface (adjust import names to match your repo):
+  ingest.factory.build_client(qdrant_settings) -> QdrantClient
+  ingest.factory.build_store(client, settings, dense_dim) -> RnStore
+  ingest.embedder.build_embedder(embedding_settings) -> Embedder
+  ingest.pipeline.ingest_corpus(store, embedder, settings) -> IngestReport
+  ingest.pipeline.ingest_doc(store, embedder, settings, doc_id) -> DocIngestResult
+  ingest.pipeline.validate_corpus(store, settings) -> ValidationReport   (.ok: bool)
+  ingest.pipeline.collection_stats(store, settings) -> CollectionStats
 """
 
 from __future__ import annotations
 
+import dataclasses
 import json
-from typing import Annotated
+from typing import Any
 
 import typer
 
-from research_navigator.common.qdrant import check_health
-from research_navigator.config import get_settings
-from research_navigator.logging import configure_logging
+from .common.qdrant import check_health
+from .config import Settings, get_settings
+from .ingest.embedder import Embedder, build_embedder
+from .ingest.factory import build_client, build_store
+from .ingest.pipeline import (
+    collection_stats,
+    ingest_corpus,
+    ingest_doc,
+    validate_corpus,
+)
+from .ingest.store import RnStore
+from .logging import configure_logging
+from .retrieve import analyze as analyze_query
+from .retrieve import build_retriever
 
-app = typer.Typer(help="AI Research Navigator", no_args_is_help=True)
+app = typer.Typer(add_completion=False, help="AI Research Navigator CLI.")
 
 
-@app.callback()
-def main() -> None:
-    pass
+def _dump(obj: Any) -> str:
+    """Best-effort structured print for dataclasses / pydantic / plain objects."""
+    value: object = obj
+    if dataclasses.is_dataclass(value) and not isinstance(value, type):
+        value = dataclasses.asdict(value)
+    elif hasattr(value, "model_dump"):
+        value = value.model_dump()
+    return json.dumps(value, indent=2, default=str)
+
+
+def _wire(settings: Settings) -> tuple[Embedder, RnStore]:
+    embedder = build_embedder(settings.embedding)
+    client = build_client(settings.qdrant)
+    store = build_store(client, settings, embedder.dense_dim)
+    return embedder, store
 
 
 @app.command()
 def healthcheck() -> None:
     """Verify the local Qdrant instance is reachable."""
     settings = get_settings()
-    configure_logging(settings.log_level, json_logs=settings.log_json)
+    configure_logging(settings.logging.level, json_logs=settings.logging.json_logs)
     if not check_health(settings):
         raise typer.Exit(code=1)
     typer.echo("Qdrant is healthy.")
 
 
+# --------------------------------------------------------------------------- #
+# Ingestion (M1)
+# --------------------------------------------------------------------------- #
 @app.command()
-def parse(write: bool = True) -> None:
-    """Parse the corpus into normalized IR and (optionally) cache it to disk."""
-    from research_navigator.parse.dispatch import parse_corpus
-
+def ingest(doc: str | None = typer.Option(None, help="Ingest a single doc_id.")) -> None:
+    """Ingest the corpus (or one document) into Qdrant."""
     settings = get_settings()
-    configure_logging(settings.log_level, json_logs=settings.log_json)
-    docs = parse_corpus(settings, write=write)
-    total_sections = sum(len(d.sections) for d in docs)
-    with_warnings = sum(1 for d in docs if d.warnings)
-    typer.echo(
-        f"Parsed {len(docs)} documents, {total_sections} sections, {with_warnings} with warnings."
-    )
-
-
-@app.command()
-def chunk() -> None:
-    """Chunk the cached IR into retrievable chunks with full payloads."""
-    from research_navigator.chunk.dispatch import chunk_corpus
-    from research_navigator.common.manifest import load_manifest
-
-    settings = get_settings()
-    configure_logging(settings.log_level, json_logs=settings.log_json)
-    manifest = load_manifest(settings.corpus_dir / "manifest.json")
-    results = chunk_corpus(manifest, settings)
-    total = sum(len(v) for v in results.values())
-    typer.echo(f"Chunked {len(results)} documents into {total} chunks.")
-
-
-@app.command()
-def ingest(
-    doc: Annotated[str | None, typer.Argument(help="Limit to a single doc_id.")] = None,
-) -> None:
-    """Embed cached chunks and idempotently upsert them into Qdrant."""
-    from research_navigator.common.manifest import load_manifest
-    from research_navigator.ingest import pipeline
-    from research_navigator.ingest.embedder import build_embedder
-    from research_navigator.ingest.factory import build_store
-
-    settings = get_settings()
-    configure_logging(settings.log_level, json_logs=settings.log_json)
-    manifest = load_manifest(settings.corpus_dir / "manifest.json")
-    embedder = build_embedder(settings.dense_embedding_model, settings.sparse_embedding_model)
-    store = build_store(settings)
-    doc_ids = [doc] if doc else None
-    report = pipeline.ingest_corpus(settings, store, embedder, manifest, doc_ids=doc_ids)
-    typer.echo(report.model_dump_json(indent=2))
+    embedder, store = _wire(settings)
+    if doc is not None:
+        typer.echo(_dump(ingest_doc(store, embedder, settings, doc)))
+    else:
+        typer.echo(_dump(ingest_corpus(store, embedder, settings)))
 
 
 @app.command()
 def validate() -> None:
-    """Check the collection matches the chunk cache (no missing/stale/orphan points)."""
-    from research_navigator.common.manifest import load_manifest
-    from research_navigator.ingest import pipeline
-    from research_navigator.ingest.factory import build_store
-
+    """Validate the collection against the corpus; exit != 0 on drift."""
     settings = get_settings()
-    configure_logging(settings.log_level, json_logs=settings.log_json)
-    manifest = load_manifest(settings.corpus_dir / "manifest.json")
-    store = build_store(settings)
-    report = pipeline.validate_corpus(settings, store, manifest)
-    typer.echo(report.model_dump_json(indent=2))
-    if not report.ok:
+    _, store = _wire(settings)
+    report = validate_corpus(store, settings)
+    typer.echo(_dump(report))
+    if not getattr(report, "ok", False):
         raise typer.Exit(code=1)
 
 
 @app.command()
-def reindex(
-    yes: Annotated[bool, typer.Option("--yes", help="Skip confirmation.")] = False,
-) -> None:
-    """Drop and recreate the collection, then re-ingest the whole corpus."""
-    from research_navigator.common.manifest import load_manifest
-    from research_navigator.ingest import pipeline
-    from research_navigator.ingest.embedder import build_embedder
-    from research_navigator.ingest.factory import build_store
-
+def reindex(yes: bool = typer.Option(False, "--yes", help="Skip confirmation.")) -> None:
+    """Drop and rebuild the collection from scratch."""
     settings = get_settings()
-    configure_logging(settings.log_level, json_logs=settings.log_json)
     if not yes:
-        typer.confirm(f"Drop and rebuild collection {settings.collection_name!r}?", abort=True)
-    manifest = load_manifest(settings.corpus_dir / "manifest.json")
-    embedder = build_embedder(settings.dense_embedding_model, settings.sparse_embedding_model)
-    store = build_store(settings)
-    store.recreate(embedder.dense_dim)
-    report = pipeline.ingest_corpus(settings, store, embedder, manifest)
-    typer.echo(report.model_dump_json(indent=2))
+        typer.confirm(
+            f"This will DROP and rebuild '{settings.qdrant.collection}'. Continue?",
+            abort=True,
+        )
+    embedder, store = _wire(settings)
+    store.recreate()
+    result = ingest_corpus(store, embedder, settings)
+    typer.echo(_dump(result))
 
 
 @app.command()
 def stats() -> None:
-    """Print point counts overall and by content_type / year / foundational flag."""
-    from research_navigator.common.manifest import load_manifest
-    from research_navigator.ingest import pipeline
-    from research_navigator.ingest.factory import build_store
-
+    """Report chunk counts by content_type, year, and tags."""
     settings = get_settings()
-    configure_logging(settings.log_level, json_logs=settings.log_json)
-    manifest = load_manifest(settings.corpus_dir / "manifest.json")
-    store = build_store(settings)
-    typer.echo(json.dumps(pipeline.collection_stats(store, manifest).model_dump(), indent=2))
+    _, store = _wire(settings)
+    typer.echo(_dump(collection_stats(store, settings)))
+
+
+# --------------------------------------------------------------------------- #
+# Retrieval (M2)
+# --------------------------------------------------------------------------- #
+@app.command()
+def analyze(query: str) -> None:
+    """Show inferred intent + metadata filters for a query (no retrieval)."""
+    settings = get_settings()
+    from .retrieve import load_catalog
+
+    catalog = load_catalog(settings.paths.manifest)
+    a = analyze_query(query, catalog=catalog, settings=settings.retrieve, now_year=None)
+    typer.echo(
+        _dump(
+            {
+                "intent": a.intent.value,
+                "filters": dataclasses.asdict(a.filters),
+                "reasons": list(a.reasons),
+            }
+        )
+    )
+
+
+@app.command()
+def search(
+    query: str,
+    k: int | None = typer.Option(None, help="Override top_k."),
+    dense_only: bool = typer.Option(False, help="Disable the sparse branch."),
+    fusion: str | None = typer.Option(None, help="rrf | dbsf."),
+) -> None:
+    """Run the M2 retrieval pipeline: print ranked chunks or a refusal."""
+    settings = get_settings()
+    updates: dict[str, Any] = {"dense_only": dense_only}
+    if k is not None:
+        updates["top_k"] = k
+    if fusion is not None:
+        updates["fusion"] = fusion
+    retrieve_settings = settings.retrieve.model_copy(update=updates)
+
+    embedder, store = _wire(settings)
+    retriever = build_retriever(
+        embedder=embedder,
+        searcher=store,
+        manifest_path=settings.paths.manifest,
+        settings=retrieve_settings,
+    )
+    result = retriever.retrieve(query)
+
+    if result.refused:
+        typer.echo(
+            "REFUSED: I don't have enough relevant material in the corpus to answer "
+            f"this confidently (confidence={result.confidence:.3f} < "
+            f"{retrieve_settings.refusal_threshold})."
+        )
+        return
+    typer.echo(
+        f"intent={result.analysis.intent.value}  filtered={result.filtered}  "
+        f"confidence={result.confidence:.3f}  fusion={result.fusion}"
+    )
+    for i, c in enumerate(result.chunks, 1):
+        typer.echo(
+            f"[{i}] {c.doc_id} · {c.title} · §{c.section_title} ({c.year})  fused={c.score:.4f}"
+        )
 
 
 if __name__ == "__main__":

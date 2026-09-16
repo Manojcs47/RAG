@@ -1,127 +1,226 @@
-"""Thin wrapper around the Qdrant client.
-
-Every raw client call lives here so the pipeline can be unit-tested against an in-memory
-client and the rest of the codebase never imports ``qdrant_client`` directly. Methods are
-deliberately small and side-effect-explicit; the *decision* of what to write lives in the
-pipeline, which only calls ``upsert``/``delete`` when there is genuinely something to change
-(this is what yields "re-ingest unchanged = 0 writes").
-"""
+"""Thin Qdrant wrapper. This is the ONLY module that talks to qdrant-client;
+every other layer receives plain data (``Hit``), never qdrant types."""
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Iterator
+from dataclasses import dataclass
+from typing import Any
 
-import structlog
 from qdrant_client import QdrantClient, models
 
-from research_navigator.ingest import schema
+from .embedder import SparseVec
+from .schema import DENSE_VECTOR, PAYLOAD_INDEXES, SPARSE_VECTOR
 
-log = structlog.get_logger(__name__)
+PointId = int | str
+
+_FUSIONS: dict[str, models.Fusion] = {
+    "rrf": models.Fusion.RRF,
+    "dbsf": models.Fusion.DBSF,
+}
 
 
-class VectorStore:
+def _as_point_id(pid: object) -> PointId:
+    return pid if isinstance(pid, int | str) else str(pid)
+
+
+@dataclass(frozen=True)
+class Hit:
+    """A retrieval hit, decoupled from qdrant's ScoredPoint."""
+
+    id: PointId
+    score: float
+    payload: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class PointRecord:
+    """An embedded chunk ready to upsert."""
+
+    id: PointId
+    dense: list[float]
+    sparse: SparseVec
+    payload: dict[str, Any]
+
+
+def _batched(items: list[Any], size: int) -> Iterator[list[Any]]:
+    for i in range(0, len(items), size):
+        yield items[i : i + size]
+
+
+class RnStore:
+    """Owns the collection lifecycle and all read/write access."""
+
     def __init__(
-        self, client: QdrantClient, collection: str, *, scroll_page_size: int = 256
+        self,
+        client: QdrantClient,
+        collection: str,
+        dense_dim: int,
+        *,
+        batch_size: int = 128,
+        scroll_page_size: int = 256,
     ) -> None:
         self._client = client
         self._collection = collection
-        self._scroll_page_size = scroll_page_size
+        self._dense_dim = dense_dim
+        self._batch = batch_size
+        self._page = scroll_page_size
 
+    # --- introspection -------------------------------------------------------
     @property
     def collection(self) -> str:
         return self._collection
 
+    def vector_names(self) -> tuple[str, str]:
+        return (DENSE_VECTOR, SPARSE_VECTOR)
+
     def exists(self) -> bool:
         return bool(self._client.collection_exists(self._collection))
 
-    def create(self, dense_dim: int) -> None:
-        """Create the collection with named dense+sparse vectors and payload indexes."""
-        self._client.create_collection(
-            collection_name=self._collection,
-            vectors_config=schema.dense_vectors_config(dense_dim),
-            sparse_vectors_config=schema.sparse_vectors_config(),
+    def count(self) -> int:
+        return int(self._client.count(self._collection, exact=True).count)
+
+    def count_where(self, query_filter: models.Filter) -> int:
+        return int(
+            self._client.count(self._collection, count_filter=query_filter, exact=True).count
         )
-        for field_name, field_schema in schema.PAYLOAD_INDEXES:
+
+    # --- lifecycle -----------------------------------------------------------
+    def create(self) -> None:
+        """Create the hybrid collection (dense + IDF sparse) and payload indexes."""
+        self._client.create_collection(
+            self._collection,
+            vectors_config={
+                DENSE_VECTOR: models.VectorParams(
+                    size=self._dense_dim, distance=models.Distance.COSINE
+                )
+            },
+            sparse_vectors_config={
+                # IDF must be set at creation; bm25 emits raw TF, IDF is server-side
+                SPARSE_VECTOR: models.SparseVectorParams(modifier=models.Modifier.IDF)
+            },
+        )
+        for field_name, field_schema in PAYLOAD_INDEXES:
             self._client.create_payload_index(
-                collection_name=self._collection,
+                self._collection,
                 field_name=field_name,
                 field_schema=field_schema,
             )
-        log.info(
-            "collection_created",
-            collection=self._collection,
-            dense_dim=dense_dim,
-            indexes=[f for f, _ in schema.PAYLOAD_INDEXES],
-        )
 
     def drop(self) -> None:
-        if self._client.collection_exists(self._collection):
+        if self.exists():
             self._client.delete_collection(self._collection)
-            log.info("collection_dropped", collection=self._collection)
 
-    def recreate(self, dense_dim: int) -> None:
+    def recreate(self) -> None:
         self.drop()
-        self.create(dense_dim)
+        self.create()
 
-    def existing_ids_for_doc(self, doc_id: str) -> set[str]:
-        """All point ids currently stored for a document (paginated scroll, ids only)."""
+    # --- diff support (idempotent upsert lives in pipeline) ------------------
+    def existing_ids_for_doc(self, doc_id: str) -> set[PointId]:
+        """All point ids currently stored for a document (paginated scroll)."""
         flt = models.Filter(
             must=[models.FieldCondition(key="doc_id", match=models.MatchValue(value=doc_id))]
         )
-        ids: set[str] = set()
-        offset: models.ExtendedPointId | None = None
+        ids: set[PointId] = set()
+        offset: Any = None
         while True:
             points, offset = self._client.scroll(
-                collection_name=self._collection,
+                self._collection,
                 scroll_filter=flt,
+                limit=self._page,
+                offset=offset,
                 with_payload=False,
                 with_vectors=False,
-                limit=self._scroll_page_size,
-                offset=offset,
             )
-            ids.update(str(p.id) for p in points)
+            ids.update(_as_point_id(p.id) for p in points)
             if offset is None:
                 break
         return ids
 
-    def upsert(self, points: Sequence[models.PointStruct], *, batch_size: int = 128) -> int:
-        written = 0
-        for start in range(0, len(points), batch_size):
-            batch = list(points[start : start + batch_size])
-            self._client.upsert(collection_name=self._collection, points=batch)
-            written += len(batch)
-        return written
-
-    def delete(self, ids: Iterable[str], *, batch_size: int = 128) -> int:
-        id_list = list(ids)
-        deleted = 0
-        for start in range(0, len(id_list), batch_size):
-            batch = id_list[start : start + batch_size]
-            self._client.delete(
-                collection_name=self._collection,
-                points_selector=models.PointIdsList(points=list(batch)),
+    # --- writes --------------------------------------------------------------
+    def upsert(self, records: Iterable[PointRecord]) -> int:
+        recs = list(records)
+        structs = [
+            models.PointStruct(
+                id=r.id,
+                vector={
+                    DENSE_VECTOR: r.dense,
+                    SPARSE_VECTOR: models.SparseVector(
+                        indices=r.sparse.indices, values=r.sparse.values
+                    ),
+                },
+                payload=r.payload,
             )
-            deleted += len(batch)
-        return deleted
+            for r in recs
+        ]
+        for batch in _batched(structs, self._batch):
+            self._client.upsert(self._collection, points=batch)
+        return len(structs)
 
-    def count(self, count_filter: models.Filter | None = None) -> int:
-        return int(
-            self._client.count(
-                collection_name=self._collection, count_filter=count_filter, exact=True
-            ).count
-        )
+    def delete(self, ids: Iterable[PointId]) -> int:
+        id_list = list(ids)
+        for batch in _batched(id_list, self._batch):
+            self._client.delete(
+                self._collection,
+                points_selector=models.PointIdsList(points=batch),
+            )
+        return len(id_list)
 
-    def count_where(self, field: str, value: str | int | bool) -> int:
-        flt = models.Filter(
-            must=[models.FieldCondition(key=field, match=models.MatchValue(value=value))]
-        )
-        return self.count(flt)
+    # --- retrieval (M2) ------------------------------------------------------
+    def hybrid_query(
+        self,
+        *,
+        dense: list[float],
+        sparse: SparseVec | None,
+        query_filter: models.Filter | None,
+        limit: int,
+        prefetch_limit: int,
+        fusion: str,
+    ) -> list[Hit]:
+        """Fused dense+sparse retrieval; filter applied inside each prefetch
+        branch (server-side). ``sparse=None`` => dense-only prefetch."""
+        prefetch = [
+            models.Prefetch(
+                query=dense, using=DENSE_VECTOR, filter=query_filter, limit=prefetch_limit
+            )
+        ]
+        if sparse is not None:
+            prefetch.append(
+                models.Prefetch(
+                    query=models.SparseVector(indices=sparse.indices, values=sparse.values),
+                    using=SPARSE_VECTOR,
+                    filter=query_filter,
+                    limit=prefetch_limit,
+                )
+            )
+        key = fusion.lower()
+        if key not in _FUSIONS:
+            raise ValueError(f"unknown fusion strategy: {fusion!r}")
+        points = self._client.query_points(
+            self._collection,
+            prefetch=prefetch,
+            query=models.FusionQuery(fusion=_FUSIONS[key]),
+            limit=limit,
+            with_payload=True,
+        ).points
+        return [
+            Hit(id=_as_point_id(p.id), score=p.score, payload=dict(p.payload or {})) for p in points
+        ]
 
-    def vector_names(self) -> tuple[list[str], list[str]]:
-        """(dense names, sparse names) declared on the collection -- used by ``validate``."""
-        info = self._client.get_collection(self._collection)
-        vectors = info.config.params.vectors
-        sparse = info.config.params.sparse_vectors
-        dense_names = list(vectors.keys()) if isinstance(vectors, dict) else []
-        sparse_names = list(sparse.keys()) if isinstance(sparse, dict) else []
-        return dense_names, sparse_names
+    def dense_query(
+        self,
+        *,
+        dense: list[float],
+        query_filter: models.Filter | None,
+        limit: int,
+    ) -> list[Hit]:
+        """Dense-only query returning cosine scores (the refusal signal)."""
+        points = self._client.query_points(
+            self._collection,
+            query=dense,
+            using=DENSE_VECTOR,
+            query_filter=query_filter,
+            limit=limit,
+            with_payload=False,
+        ).points
+        return [Hit(id=_as_point_id(p.id), score=p.score, payload={}) for p in points]

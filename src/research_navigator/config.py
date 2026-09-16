@@ -1,65 +1,81 @@
-"""Application configuration via pydantic-settings."""
+"""Central configuration. All tunables live here (pydantic-settings, env prefix
+``RN_``, nested delimiter ``__``). No hardcoded paths/models/thresholds elsewhere.
+"""
 
 from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from research_navigator.chunk.settings import ChunkingSettings
+from .chunk.settings import ChunkingSettings
+from .retrieve.settings import RetrieveSettings
+
+
+class PathsSettings(BaseModel):
+    root: Path = Path(".")
+    data_dir: Path = Path("data")
+    parsed_dir: Path = Path("data/parsed")
+    chunks_dir: Path = Path("data/chunks")
+    corpus_dir: Path = Path("corpus")
+
+    @property
+    def manifest(self) -> Path:
+        return self.corpus_dir / "manifest.json"
+
+
+class QdrantSettings(BaseModel):
+    host: str = "localhost"
+    port: int = 6333
+    grpc_port: int = 6334
+    prefer_grpc: bool = False
+    timeout: float = 30.0
+    collection: str = "research_navigator"
+
+    @property
+    def url(self) -> str:
+        return f"http://{self.host}:{self.port}"
+
+
+class EmbeddingSettings(BaseModel):
+    dense_model: str = "BAAI/bge-small-en-v1.5"
+    sparse_model: str = "Qdrant/bm25"
+
+
+class IngestSettings(BaseModel):
+    upsert_batch_size: int = Field(default=128, ge=1)
+    scroll_page_size: int = Field(default=256, ge=1)
+
+
+class LLMSettings(BaseModel):
+    model: str = "gpt-4o-mini"
+    temperature: float = 0.0
+    max_tokens: int = 1024
+
+
+class LoggingSettings(BaseModel):
+    level: str = "INFO"
+    json_logs: bool = False
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
         env_prefix="RN_",
-        env_file_encoding="utf-8",
         env_nested_delimiter="__",
+        env_file=".env",
         extra="ignore",
     )
 
-    # --- Qdrant connection ---
-    qdrant_host: str = "localhost"
-    qdrant_port: int = 6333
-    qdrant_grpc_port: int = 6334
-    qdrant_prefer_grpc: bool = False
-    qdrant_api_key: str | None = None
-    collection_name: str = "research_navigator"
-
-    # --- Embeddings (Session 4) ---
-    dense_embedding_model: str = "BAAI/bge-small-en-v1.5"
-    sparse_embedding_model: str = "Qdrant/bm25"
-
-    # --- Generation (Session 6) ---
-    llm_model: str = "gpt-4o-mini"
-    llm_api_key: str | None = None
-
-    # --- Retrieval knobs ---
-    retrieval_top_k: int = 8
-    refusal_similarity_threshold: float = 0.35
-
-    # --- Logging ---
-    log_level: str = "INFO"
-    log_json: bool = False
-
-    # --- Paths ---
-    corpus_dir: Path = Path("corpus")
-    documents_dir: Path = Path("documents")
-    parsed_dir: Path = Path("data/parsed")  # NEW: cached IR from Session 2
-
-    # paths
-    chunk_dir: Path = Path("data/chunks")  # NEW (Session 3)
-
-    # chunking (NEW, Session 3)
-    # Tokenizer used to MEASURE chunk length. Tracks the dense embedding model,
-    # because that model's 512-token limit is the real constraint on chunk size.
-    chunk_tokenizer_model: str = "BAAI/bge-small-en-v1.5"
-    chunking: ChunkingSettings = ChunkingSettings()
-
-    # --- ingestion (Session 4) ---
-    ingest_upsert_batch_size: int = 128
-    ingest_scroll_page_size: int = 256
+    paths: PathsSettings = Field(default_factory=PathsSettings)
+    qdrant: QdrantSettings = Field(default_factory=QdrantSettings)
+    embedding: EmbeddingSettings = Field(default_factory=EmbeddingSettings)
+    ingest: IngestSettings = Field(default_factory=IngestSettings)
+    chunking: ChunkingSettings = Field(default_factory=ChunkingSettings)
+    retrieve: RetrieveSettings = Field(default_factory=RetrieveSettings)
+    llm: LLMSettings = Field(default_factory=LLMSettings)
+    logging: LoggingSettings = Field(default_factory=LoggingSettings)
 
 
 @lru_cache(maxsize=1)

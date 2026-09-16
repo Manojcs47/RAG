@@ -21,9 +21,9 @@ from research_navigator.chunk.hashing import content_hash
 from research_navigator.chunk.models import Chunk
 from research_navigator.common.manifest import Manifest, ManifestEntry
 from research_navigator.common.types import ContentType
-from research_navigator.config import Settings
+from research_navigator.config import PathsSettings, Settings
 from research_navigator.ingest import schema
-from research_navigator.ingest.embedder import SparseVec
+from research_navigator.ingest.embedder import QueryVectors, SparseVec
 from research_navigator.ingest.ids import point_id
 from research_navigator.ingest.pipeline import (
     collection_stats,
@@ -31,7 +31,7 @@ from research_navigator.ingest.pipeline import (
     load_chunks,
     validate_corpus,
 )
-from research_navigator.ingest.store import VectorStore
+from research_navigator.ingest.store import RnStore
 
 # --------------------------------------------------------------------------- fakes
 
@@ -42,12 +42,6 @@ class FakeEmbedder:
     dense_dim = 8
     dense_model = "fake-dense"
     sparse_model = "fake-sparse"
-
-    def embed_documents(self, texts: Sequence[str]) -> list[list[float]]:
-        return [self._dense(t) for t in texts]
-
-    def embed_sparse(self, texts: Sequence[str]) -> list[SparseVec]:
-        return [self._sparse(t) for t in texts]
 
     def _dense(self, text: str) -> list[float]:
         digest = hashlib.sha256(text.encode("utf-8")).digest()
@@ -62,6 +56,12 @@ class FakeEmbedder:
         if not weights:
             weights[0] = 1.0
         return SparseVec(indices=list(weights.keys()), values=list(weights.values()))
+
+    def embed_passages(self, texts: Sequence[str]) -> list[QueryVectors]:
+        return [QueryVectors(dense=self._dense(t), sparse=self._sparse(t)) for t in texts]
+
+    def embed_query(self, text: str) -> QueryVectors:
+        return QueryVectors(dense=self._dense(text), sparse=self._sparse(text))
 
 
 # --------------------------------------------------------------------------- helpers
@@ -93,28 +93,28 @@ def make_chunk(doc_id: str, idx: int, text: str, **overrides: object) -> Chunk:
 
 
 def write_cache(settings: Settings, doc_id: str, chunks: list[Chunk]) -> None:
-    settings.chunk_dir.mkdir(parents=True, exist_ok=True)
+    settings.paths.chunks_dir.mkdir(parents=True, exist_ok=True)
     payload = [c.payload() for c in chunks]
-    (settings.chunk_dir / f"{doc_id}.json").write_text(
+    (settings.paths.chunks_dir / f"{doc_id}.json").write_text(
         json.dumps(payload, ensure_ascii=False), encoding="utf-8"
     )
 
 
 @pytest.fixture
 def settings(tmp_path: Path) -> Settings:
-    s = Settings(chunk_dir=tmp_path / "chunks")
-    s.collection_name = "test_rn"
-    return s
+    return Settings(
+        paths=PathsSettings(chunks_dir=tmp_path / "chunks", corpus_dir=tmp_path / "corpus")
+    )
 
 
 @pytest.fixture
-def store() -> VectorStore:
-    return VectorStore(QdrantClient(":memory:"), "test_rn")
+def store() -> RnStore:
+    return RnStore(QdrantClient(":memory:"), "test_rn", dense_dim=8)
 
 
 @pytest.fixture
 def corpus(settings: Settings) -> Manifest:
-    """Two docs written to the chunk cache; return a matching manifest."""
+    """Two docs written to the chunk cache; a matching manifest written to disk."""
     d1 = [
         make_chunk("arxiv-1", 0, "attention is all you need", is_abstract=True),
         make_chunk("arxiv-1", 1, "the transformer uses self attention over tokens"),
@@ -132,7 +132,7 @@ def corpus(settings: Settings) -> Manifest:
     ]
     write_cache(settings, "arxiv-1", d1)
     write_cache(settings, "hf-1", d2)
-    return Manifest(
+    manifest = Manifest(
         documents=[
             ManifestEntry(
                 doc_id="arxiv-1",
@@ -156,6 +156,9 @@ def corpus(settings: Settings) -> Manifest:
             ),
         ]
     )
+    settings.paths.manifest.parent.mkdir(parents=True, exist_ok=True)
+    settings.paths.manifest.write_text(manifest.model_dump_json(), encoding="utf-8")
+    return manifest
 
 
 # --------------------------------------------------------------------------- tests
@@ -170,24 +173,22 @@ def test_point_id_is_deterministic_uuid_sensitive_to_hash() -> None:
     uuid.UUID(a)  # valid UUID string (accepted by Qdrant)
 
 
-def test_ensure_collection_named_vectors(store: VectorStore) -> None:
-    store.create(dense_dim=8)
+def test_ensure_collection_named_vectors(store: RnStore) -> None:
+    store.create()
     assert store.exists()
-    dense_names, sparse_names = store.vector_names()
-    assert dense_names == [schema.DENSE_VECTOR]
-    assert sparse_names == [schema.SPARSE_VECTOR]
+    assert store.vector_names() == (schema.DENSE_VECTOR, schema.SPARSE_VECTOR)
 
 
 def test_ingest_is_idempotent_zero_writes_on_reingest(
-    settings: Settings, store: VectorStore, corpus: Manifest
+    settings: Settings, store: RnStore, corpus: Manifest
 ) -> None:
     embedder = FakeEmbedder()
-    first = ingest_corpus(settings, store, embedder, corpus)
+    first = ingest_corpus(store, embedder, settings)
     assert first.added == 3  # 2 + 1 chunks
     assert first.deleted == 0
     assert store.count() == 3
 
-    second = ingest_corpus(settings, store, embedder, corpus)
+    second = ingest_corpus(store, embedder, settings)
     assert second.added == 0  # <-- re-ingest unchanged = 0 writes
     assert second.deleted == 0
     assert second.unchanged == 3
@@ -196,10 +197,10 @@ def test_ingest_is_idempotent_zero_writes_on_reingest(
 
 
 def test_editing_chunk_text_replaces_point(
-    settings: Settings, store: VectorStore, corpus: Manifest
+    settings: Settings, store: RnStore, corpus: Manifest
 ) -> None:
     embedder = FakeEmbedder()
-    ingest_corpus(settings, store, embedder, corpus)
+    ingest_corpus(store, embedder, settings)
 
     # Edit one chunk's text -> new content_hash -> new id; old id becomes stale.
     edited = [
@@ -208,7 +209,7 @@ def test_editing_chunk_text_replaces_point(
     ]
     write_cache(settings, "arxiv-1", edited)
 
-    report = ingest_corpus(settings, store, embedder, corpus, doc_ids=["arxiv-1"])
+    report = ingest_corpus(store, embedder, settings, doc_ids=["arxiv-1"])
     doc_result = next(d for d in report.docs if d.doc_id == "arxiv-1")
     assert doc_result.added == 1
     assert doc_result.deleted == 1
@@ -216,22 +217,22 @@ def test_editing_chunk_text_replaces_point(
 
 
 def test_removing_chunks_deletes_stale_points(
-    settings: Settings, store: VectorStore, corpus: Manifest
+    settings: Settings, store: RnStore, corpus: Manifest
 ) -> None:
     embedder = FakeEmbedder()
-    ingest_corpus(settings, store, embedder, corpus)
+    ingest_corpus(store, embedder, settings)
 
     write_cache(settings, "arxiv-1", [make_chunk("arxiv-1", 0, "attention is all you need")])
-    report = ingest_corpus(settings, store, embedder, corpus, doc_ids=["arxiv-1"])
+    report = ingest_corpus(store, embedder, settings, doc_ids=["arxiv-1"])
     doc_result = next(d for d in report.docs if d.doc_id == "arxiv-1")
     assert doc_result.deleted == 1
     assert store.count() == 2
 
 
 def test_full_manifest_payload_carried_to_points(
-    settings: Settings, store: VectorStore, corpus: Manifest
+    settings: Settings, store: RnStore, corpus: Manifest
 ) -> None:
-    ingest_corpus(settings, store, FakeEmbedder(), corpus)
+    ingest_corpus(store, FakeEmbedder(), settings)
     chunks = load_chunks(settings, "arxiv-1")
     assert chunks is not None
     pid = point_id("arxiv-1", chunks[0].chunk_index, chunks[0].content_hash)
@@ -243,9 +244,9 @@ def test_full_manifest_payload_carried_to_points(
     assert payload["tags"] == ["transformers", "attention"]
 
 
-def test_stats_counts_are_correct(settings: Settings, store: VectorStore, corpus: Manifest) -> None:
-    ingest_corpus(settings, store, FakeEmbedder(), corpus)
-    stats = collection_stats(store, corpus)
+def test_stats_counts_are_correct(settings: Settings, store: RnStore, corpus: Manifest) -> None:
+    ingest_corpus(store, FakeEmbedder(), settings)
+    stats = collection_stats(store, settings)
     assert stats.total_points == 3
     assert stats.by_content_type["arxiv_paper"] == 2
     assert stats.by_content_type["course_chapter"] == 1
@@ -255,17 +256,17 @@ def test_stats_counts_are_correct(settings: Settings, store: VectorStore, corpus
 
 
 def test_validate_ok_then_detects_drift(
-    settings: Settings, store: VectorStore, corpus: Manifest
+    settings: Settings, store: RnStore, corpus: Manifest
 ) -> None:
-    ingest_corpus(settings, store, FakeEmbedder(), corpus)
-    clean = validate_corpus(settings, store, corpus)
+    ingest_corpus(store, FakeEmbedder(), settings)
+    clean = validate_corpus(store, settings)
     assert clean.ok
     assert clean.expected_points == clean.actual_points == 3
 
     # Introduce drift by deleting a document's points behind the pipeline's back.
     stale_ids = store.existing_ids_for_doc("hf-1")
     store.delete(stale_ids)
-    drifted = validate_corpus(settings, store, corpus)
+    drifted = validate_corpus(store, settings)
     assert not drifted.ok
     kinds = {i.kind for i in drifted.issues}
     assert "missing_points" in kinds
@@ -273,7 +274,7 @@ def test_validate_ok_then_detects_drift(
 
 
 def test_validate_missing_collection(settings: Settings, corpus: Manifest) -> None:
-    empty = VectorStore(QdrantClient(":memory:"), "does_not_exist")
-    report = validate_corpus(settings, empty, corpus)
+    empty = RnStore(QdrantClient(":memory:"), "does_not_exist", dense_dim=8)
+    report = validate_corpus(empty, settings)
     assert not report.ok
     assert report.issues[0].kind == "missing_collection"
