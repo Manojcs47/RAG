@@ -150,3 +150,68 @@ content_type/year/tags/primary_category/is_foundational, deterministic point IDs
 idempotent upserts (re-ingest unchanged = 0 writes), ingest/validate/reindex/stats CLI.
 ** Per ROADMAP note: re-verify current Qdrant Query API / hybrid signatures before writing S4 code. **
 === END CHECKPOINT ===
+
+=== CHECKPOINT: Session 4 complete (M1c–M1f — Embeddings + Qdrant ingest) ===
+
+PROJECT: AI Research Navigator — citation-grounded RAG + LangGraph agent over 50 AI/ML docs.
+STACK: Qdrant (v1.18.2 pinned), LangGraph, Python 3.12.
+DONE: M0 setup; M1a parse -> data/parsed/*.json; M1b chunk -> data/chunks/*.json (full payloads);
+      M1c–M1f ingest -> hybrid Qdrant collection.
+
+COMPLETED THIS SESSION (M1c–M1f):
+- New package src/research_navigator/ingest/:
+  - embedder.py: Embedder Protocol + SparseVec; FastEmbedEmbedder (dense BAAI/bge-small-en-v1.5 384-dim
+    + sparse Qdrant/bm25, ONNX/no-torch); build_embedder fails LOUD (no fake fallback). Dim probed, not
+    hardcoded. BM25 emits raw TF; IDF is applied server-side by the collection.
+  - schema.py: named vectors DENSE="dense", SPARSE="bm25"; sparse uses Modifier.IDF (must be set at
+    creation). PAYLOAD_INDEXES: doc_id, content_type, primary_category, tags(keyword-list),
+    is_foundational(bool), year(int).
+  - ids.py: point_id = uuid5(RN_NAMESPACE, chunk_uid). chunk_uid embeds content_hash -> content-addressed
+    ids; text edit => new id + old id stale.
+  - store.py: thin Qdrant wrapper (all client calls isolated) — exists/create(+indexes)/drop/recreate,
+    existing_ids_for_doc (paginated scroll), upsert/delete (batched), count/count_where, vector_names.
+  - pipeline.py: ingest_doc (per-doc diff: add desired−existing, delete existing−desired, skip
+    intersection; embed only what's written), ingest_corpus (ensures collection), collection_stats,
+    validate_corpus (missing/stale/orphan/count drift).
+  - models.py: DocIngestResult / IngestReport (added/deleted/unchanged/writes) / CollectionStats /
+    ValidationReport. settings.py: IngestSettings. factory.py: build_client/build_store.
+- cli.py: thin `ingest [--doc]`, `validate` (exit!=0 on drift), `reindex [--yes]`, `stats`.
+- config.py: added `ingest: IngestSettings`. pyproject: mypy override ignore_missing_imports for
+  fastembed.*, tokenizers.*. deps: fastembed, qdrant-client.
+- tests/test_ingest.py (9): deterministic ids, named-vector collection, re-ingest = 0 writes, edit
+  replaces point, remove deletes stale, full payload carry-through, stats counts, validate ok+drift,
+  missing-collection. Hermetic via QdrantClient(":memory:") + fake embedder.
+
+VERIFIED: ruff + ruff format + mypy --strict (24 files) clean; 26 tests pass (17 S3 + 9 S4).
+  E2E smoke: ingest#1 writes=3; ingest#2 (unchanged) added=0 deleted=0 writes=0; stats by type/year
+  /foundational correct; validate ok expected==actual==3.
+
+KEY DECISIONS (keep consistent):
+- FastEmbed backend (dense+sparse from one dep), behind Embedder protocol, fail-loud.
+- One point, two named vectors (dense+bm25) + full payload; sparse Modifier.IDF (server-side, day-one).
+- Content-addressed point ids (uuid5 over chunk_uid) => idempotent diff-based upsert.
+- Embed only chunks being written; unchanged corpus = 0 embeds, 0 writes.
+
+CURRENT STATE:
+- `research-navigator ingest` populates the collection from data/chunks/*.json; validate/stats/reindex work.
+- NOT yet retrieved from: no query understanding / fusion at query time yet.
+
+OPEN ITEMS / TODO carried forward:
+- Run real `ingest` in your env (sandbox had no HF egress); confirm dense_dim==384.
+- Confirm on the Docker server (not :memory:) that payload indexes + IDF actually take effect (stats +
+  a filtered query).
+- Carried from M1a: verify arxiv-2408.00118 (Gemma 2) & arxiv-2501.12948 (DeepSeek-R1) manifest ids.
+- docs/OBSERVATIONS.md: global chunk_index re-embeds trailing chunks on early edits; local-mode index
+  no-op caveat; PDF no-headings/no-refs/column-interleaving notes.
+- Write ADRs: "embedding backend = FastEmbed", "hybrid collection schema + server-side IDF",
+  "content-addressed ids + idempotent upsert" (rubric wants ≥5).
+
+STOPPED AT: end of M1f. Corpus is embeddable + idempotently indexed with full metadata.
+
+NEXT STEP (Session 5 = M2 retrieval): query understanding (intent + filter inference), hybrid
+retrieval via the Query API (dense + bm25 prefetch -> RRF FusionQuery), Qdrant-native metadata
+filtering, top_k + refusal threshold from config.
+** Verified this session for S5: query_points(prefetch=[Prefetch(using="dense"...), Prefetch(using="bm25",
+   query=SparseVector...)], query=FusionQuery(fusion=RRF)) works on this collection; prefetch limit must
+   be >= final limit. Re-verify LangGraph API at Session 7. **
+=== END CHECKPOINT ===

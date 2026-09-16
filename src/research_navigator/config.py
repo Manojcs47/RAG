@@ -57,6 +57,10 @@ class Settings(BaseSettings):
     chunk_tokenizer_model: str = "BAAI/bge-small-en-v1.5"
     chunking: ChunkingSettings = ChunkingSettings()
 
+    # --- ingestion (Session 4) ---
+    ingest_upsert_batch_size: int = 128
+    ingest_scroll_page_size: int = 256
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

@@ -15,6 +15,7 @@ dependencies = [
     "pymupdf>=1.28.2",
     "markdown-it-py>=4.2.0",
     "tokenizers>=0.23.2",
+    "fastembed>=0.8.0",
 ]
 
 [project.scripts]
@@ -80,3 +81,7 @@ addopts = "-ra -m 'not integration' --cov=research_navigator --cov-report=term-m
 markers = [
     "integration: tests that require a running Qdrant (deselected by default).",
 ]
+
+[[tool.mypy.overrides]]
+module = ["fastembed.*", "tokenizers.*"]
+ignore_missing_imports = true
