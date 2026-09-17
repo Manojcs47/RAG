@@ -1,5 +1,9 @@
 """Central configuration. All tunables live here (pydantic-settings, env prefix
 ``RN_``, nested delimiter ``__``). No hardcoded paths/models/thresholds elsewhere.
+
+NOTE (reconstruction): this mirrors the config contract the rest of the project
+depends on. Merge with your existing config.py rather than blind-overwriting —
+keep any S0-S4 fields your modules already import.
 """
 
 from __future__ import annotations
@@ -11,6 +15,7 @@ from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .chunk.settings import ChunkingSettings
+from .generate.settings import GenerateSettings
 from .retrieve.settings import RetrieveSettings
 
 
@@ -53,6 +58,8 @@ class LLMSettings(BaseModel):
     model: str = "gpt-4o-mini"
     temperature: float = 0.0
     max_tokens: int = 1024
+    api_key: str | None = None  # falls back to OPENAI_API_KEY env if None
+    base_url: str | None = None  # set for an OpenAI-compatible OSS server
 
 
 class LoggingSettings(BaseModel):
@@ -74,6 +81,7 @@ class Settings(BaseSettings):
     ingest: IngestSettings = Field(default_factory=IngestSettings)
     chunking: ChunkingSettings = Field(default_factory=ChunkingSettings)
     retrieve: RetrieveSettings = Field(default_factory=RetrieveSettings)
+    generate: GenerateSettings = Field(default_factory=GenerateSettings)
     llm: LLMSettings = Field(default_factory=LLMSettings)
     logging: LoggingSettings = Field(default_factory=LoggingSettings)
 

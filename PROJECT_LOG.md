@@ -292,3 +292,80 @@ NEXT STEP (Session 6 = M2 generation): inline [n] citations + structured citatio
 same-doc chunks to most-relevant section), consume res.refused for graceful low-confidence decline.
 20 held-out Qs each cite-or-refuse; no fabricated citations.
 === END CHECKPOINT ===
+=== CHECKPOINT: Session 6 complete (M2 generation — cited answers + refusal) ===
+
+PROJECT: AI Research Navigator — citation-grounded RAG + LangGraph agent over 50 AI/ML docs.
+STACK: Qdrant (v1.18.2 pinned; client 1.19.1), LangGraph, Python 3.12, OpenAI gpt-4o-mini (swappable).
+DONE: M0 setup; M1a parse; M1b chunk; M1c–M1f ingest; M2 retrieval (S5);
+      M2 generation (this session) -> grounded answers w/ validated inline citations + refusal.
+
+COMPLETED THIS SESSION (M2 generation):
+- New package src/research_navigator/generate/:
+  - settings.py: GenerateSettings (refusal_message, refusal_sentinel=INSUFFICIENT_CONTEXT,
+    require_citations, max_chunks_per_doc=3, source_char_budget=1200, max_sources=8,
+    authors_etal_threshold=3, source_labels map — no hardcoding).
+  - models.py: Source (doc-collapsed context), Citation (index/title/authors/year/source/section/url
+    + render()), Answer (text/citations/refused/reason/intent/confidence/uncited_sentences + render()).
+  - citations.py: format_authors (>=3 -> "First et al.", 2 -> "A and B"), extract_arxiv_id,
+    source_label (arxiv_paper -> "arXiv:<id>"; else map: Lil'Log / Hugging Face Learn / Lab Blog),
+    to_citation. PURE, unit-tested.
+  - sources.py: build_sources -> CITATION DEDUP: group chunks by doc_id, one Source per doc, section =
+    highest-scoring chunk's section, context = top chunks concatenated (char-budgeted), ordered by
+    best score, numbered 1..N (<= max_sources).
+  - markers.py: parse_markers; render_citations = THE ANTI-FABRICATION GUARD -> drop out-of-range
+    (fabricated) markers, renumber survivors contiguously by first appearance, return (clean_text,
+    used_sources_new_index, dropped[]). uncited_sentences (diagnostic). PURE.
+  - prompt.py: build_messages (system: cite every factual sentence, only listed numbers, else emit
+    sentinel; user: question + numbered sources). llm.py: ChatMessage, LanguageModel Protocol,
+    OpenAIChatModel (lazy import, base_url => OSS OpenAI-compatible servers), build_llm fail-loud.
+  - generator.py: Generator.answer -> retrieve; if res.refused -> refuse(low_confidence) [LLM NOT
+    called]; build_sources; if none -> refuse; LLM.complete; if sentinel -> refuse(model_insufficient);
+    render_citations (log dropped fabricated markers, no silent failure); if require_citations and no
+    valid citation -> refuse(no_valid_citations); else Answer with Citations. Retrieving Protocol
+    decouples from concrete retriever. factory.py: build_generator. __init__ exports API.
+- config.py: + generate: GenerateSettings; LLMSettings + api_key + base_url (RN_LLM__*).
+  cli.py: + thin `answer` command (retrieve -> generate -> render).
+- tests/test_generate.py (14): author formatting, arxiv-id extraction, source labels, same-doc dedup,
+  marker parse (grouped), fabricated-marker drop + renumber, noncontiguous renumber, e2e cited answer,
+  refusal (low_confidence / sentinel / only-fabricated), sources-block render, two-author citation.
+  Hermetic: FakeRetriever(RetrievalResult) + FakeLLM (NO network, NO qdrant).
+
+VERIFIED: ruff + ruff format clean; mypy --strict clean (25 src files); 32 tests pass (18 S5 + 14 S6);
+  cli.py type-checks against real-signature S4 stubs. Live FakeLLM demo: 3 chunks/2 docs -> 2 deduped
+  sources; model's fabricated [7] dropped+logged, its sentence flagged uncited; "Dettmers et al." +
+  arXiv:2305.14314 + section + URL rendered; low-confidence path refuses WITHOUT calling the LLM.
+
+KEY DECISIONS THIS SESSION (-> ADR material):
+- No-fabricated-citations is DETERMINISTIC: enforced by render_citations (drop out-of-range, renumber),
+  not by trusting the LLM. Every surviving [n] maps to a real retrieved chunk.
+- Citation dedup at SOURCE level: one citation per doc_id, pointing at the most-relevant section.
+- Two refusal layers: retrieval cosine gate (S5) AND LLM sentinel abstention (S6) AND empty-citation
+  guard -> graceful decline, never fabrication.
+- Generation backend behind LanguageModel Protocol; OpenAI default, base_url makes it OSS-swappable.
+- Uncited sentences are FLAGGED (diagnostic), not deleted, to avoid mangling model text; M4 LLM judge
+  measures per-claim faithfulness. (Optional future: drop_uncited_sentences toggle.)
+
+CURRENT STATE:
+- `research-navigator answer "<q>"` -> grounded cited answer or graceful refusal.
+- Full M2 pipeline works end to end (retrieve + generate). Ready for M3 agent routing.
+- NOT yet: LangGraph router/route nodes/tool call (M3); eval harness (M4).
+
+OPEN ITEMS / TODO carried forward:
+- Run real `answer` (needs OPENAI_API_KEY + HF egress for FastEmbed). Confirm citation quality on
+  real gpt-4o-mini output; watch for markers like [1][2] adjacency (parser handles [1, 2] and separate).
+- Curate the 20 held-out Qs for M2 acceptance (each must cite-or-refuse) — feeds M4 golden set.
+- Consider drop_uncited_sentences toggle + a stricter "every sentence cited" mode.
+- Carried from S5: incremental (not all-or-nothing) filter relaxation; :memory: index no-op caveat;
+  verify Gemma2/DeepSeek-R1 manifest ids.
+- ADRs (rubric >=5): FastEmbed backend; hybrid schema+IDF; content-addressed ids; filter inference=
+  rules; fusion=RRF+cosine refusal; (NEW) deterministic citation validation + source-level dedup.
+- Re-verify LangGraph API at START of Session 7.
+
+STOPPED AT: end of M2 generation. Answers are grounded, cited, deduped, and refuse gracefully.
+
+NEXT STEP (Session 7 = M3 agent): LangGraph state machine — Router -> {concept_explanation,
+paper_deep_dive, compare_approaches, recent_developments, find_papers, out_of_scope}. Serializable
+state; >=1 tool call (e.g. corpus-metadata lookup or date-math for recent_developments). Reuse
+Retriever (M2) + Generator (M2) inside route nodes. Graph visualized for design notes. Each route
+exercised by >=3 test queries. VERIFY current LangGraph API signatures first.
+=== END CHECKPOINT ===

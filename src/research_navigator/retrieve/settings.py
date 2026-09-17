@@ -27,7 +27,7 @@ class RetrieveSettings(BaseModel):
 
     # --- refusal (cosine space, from the dense probe) ------------------------
     refusal_threshold: float = Field(
-        default=0.35,
+        default=0.25,
         ge=-1.0,
         le=1.0,
         description="Refuse if max dense cosine < this. NOT the fused score.",
