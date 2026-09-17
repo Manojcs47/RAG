@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import dataclasses
 import json
+from pathlib import Path
 from typing import Any
 
 import typer
@@ -36,6 +37,49 @@ from .retrieve import analyze as analyze_query
 from .retrieve import build_retriever
 
 app = typer.Typer(add_completion=False, help="AI Research Navigator CLI.")
+
+
+@app.command()
+def healthcheck() -> None:
+    """Check that the configured Qdrant instance is reachable."""
+    from research_navigator.common.qdrant import check_health
+
+    settings = get_settings()
+    if not check_health(settings):
+        typer.echo(f"Qdrant unreachable at {settings.qdrant.url}", err=True)
+        raise typer.Exit(code=1)
+    typer.echo(f"Qdrant reachable at {settings.qdrant.url}.")
+
+
+# --------------------------------------------------------------------------- #
+# Corpus preparation (M1a parse, M1b chunk) — run once per corpus change,
+# before `ingest`. Cached to data/parsed/ and data/chunks/ respectively.
+# --------------------------------------------------------------------------- #
+@app.command()
+def parse() -> None:
+    """Parse the corpus (PDF + Markdown) into data/parsed/*.json."""
+    from research_navigator.parse.dispatch import parse_corpus
+
+    settings = get_settings()
+    results = parse_corpus(settings)
+    with_warnings = sum(1 for r in results if r.warnings)
+    typer.echo(
+        f"parsed {len(results)} document(s) -> {settings.paths.parsed_dir} "
+        f"({with_warnings} with warnings; see logs)"
+    )
+
+
+@app.command()
+def chunk() -> None:
+    """Chunk cached parsed documents into data/chunks/*.json."""
+    from research_navigator.chunk.dispatch import chunk_corpus
+    from research_navigator.common.manifest import load_manifest
+
+    settings = get_settings()
+    manifest = load_manifest(settings.paths.manifest)
+    results = chunk_corpus(manifest, settings)
+    total = sum(len(v) for v in results.values())
+    typer.echo(f"chunked {len(results)} document(s), {total} chunks -> {settings.paths.chunks_dir}")
 
 
 def _dump(obj: Any) -> str:
@@ -241,6 +285,53 @@ def route(
     router = Router(settings=settings.agents, llm=llm)
     route_name, reason, confidence = router.route(query)
     typer.echo(f"{route_name}\t{confidence:.2f}\t{reason}")
+
+
+# --------------------------------------------------------------------------- #
+# Evaluation (M4)
+# --------------------------------------------------------------------------- #
+@app.command("eval")
+def evaluate(
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Run the harness on in-repo fakes (no Qdrant/OpenAI). Ideal for CI.",
+    ),
+    golden: str | None = typer.Option(
+        None, "--golden", help="Golden-set JSON path. Defaults to the packaged set."
+    ),
+    out: str | None = typer.Option(
+        None, "--out", help="Output dir for report.json/report.md (default from settings)."
+    ),
+) -> None:
+    """Evaluate the Navigator over the golden set; write JSON + one-page Markdown (M4).
+
+    `make eval` runs the live sweep (needs OPENAI_API_KEY + a running Qdrant + FastEmbed
+    egress); `--dry-run` runs the identical flow on fakes with no external services.
+    """
+    # Local imports: eval is a leaf package and the dry-run path must not touch the stack.
+    from research_navigator.eval import load_golden_set, run_eval
+
+    settings = get_settings()
+    eval_settings = settings.eval
+    if out is not None:
+        eval_settings = eval_settings.model_copy(update={"report_dir": Path(out)})
+
+    golden_path = Path(golden) if golden is not None else eval_settings.golden_set_path
+    golden_set = load_golden_set(golden_path)
+
+    if dry_run:
+        from research_navigator.eval.factory import build_dry_run_builder
+
+        builder = build_dry_run_builder(golden_set)
+    else:
+        from research_navigator.eval.factory import build_real_builder
+
+        builder = build_real_builder(settings)
+
+    report = run_eval(builder=builder, golden=golden_set, settings=eval_settings)
+    for path in report.write(eval_settings):
+        typer.echo(f"wrote {path}")
 
 
 if __name__ == "__main__":

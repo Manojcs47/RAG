@@ -22,6 +22,16 @@ dependencies = [
 
 [project.scripts]
 research-navigator = "research_navigator.cli:app"
+rn = "research_navigator.cli:app"
+
+[project.optional-dependencies]
+# Exact OpenAI token counts for the M4 eval harness (`make eval`). Optional by design
+# (ADR-0008): when tiktoken — or its lazy BPE-vocab download — is unavailable, the token
+# counter degrades to a stable len/4 heuristic and the report says so. Install with
+# `uv sync --extra eval`.
+eval = [
+    "tiktoken>=0.7",
+]
 
 [dependency-groups]
 # uv-native dev dependency group (installed by `uv sync`)

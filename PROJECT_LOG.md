@@ -475,3 +475,48 @@ expected route + relevance labels; retrieval P/R@k; citation-faithfulness LLM ju
 per-route query tables from test_agents.py as the routing seed. Re-verify any eval-relevant LangGraph /
 OpenAI APIs before writing code.
 === END CHECKPOINT ===
+=== CHECKPOINT: Session 8 — M4 Evaluation Harness (2026-09-17) ===
+
+DELIVERED
+- research_navigator.eval package (11 modules): ports, settings, golden, metrics,
+  cost, judge, runner, report, harness, adapters, factory.
+- Golden set: data/golden_set.json — 40 Qs across all 6 routes
+  (concept_explanation 7, paper_deep_dive 6, compare_approaches 6,
+   recent_developments 7, find_papers 6, out_of_scope 8); 32 retrieval + 8 refusal.
+- Metrics: document-level precision/recall@k (k=3,5,8; primary 5), F1, routing
+  accuracy, refusal precision/recall/accuracy, latency p50/p95, token+cost/query.
+- Citation faithfulness: LLM-as-judge with explicit rubric (grounding + attribution),
+  defensive JSON parse, score >= judge_min_score (0.8) gate, no silent failure.
+- Reports: EvalReport -> report.json + one-page report.md comparing hybrid vs
+  dense_only; honest Limitations section. `make eval` / `rn eval` (+ `--dry-run`).
+- ADR-0008 (ports decoupling, doc-level P/R@k, tiktoken-optional cost, judge rubric,
+  hybrid-vs-dense config comparison) + verbatim rubric. ADR total now 8 (>= 5).
+- Patches: config.py (Settings.eval), cli.py (eval cmd + offline fakes),
+  Makefile (eval / eval-dry-run), pyproject.toml (tiktoken extra, mypy note).
+- tests/test_eval.py — 24 hermetic tests; scripts/eval_dry_run.py (offline).
+
+QUALITY GATES
+- ruff check + ruff format --check: clean.
+- mypy --strict (src/research_navigator/eval): Success, 12 files.
+- pytest: 24 passed. Coverage research_navigator.eval: 91%
+  (factory.py 0% — live-stack seam, by design).
+- Golden set validated: 40 Qs, all 6 routes, minimum-coverage assertion passes.
+
+INTEGRATION SEAM (reconcile at wiring time — only thing S8 couldn't verify live)
+- adapters.py / factory.py reference concrete names: settings.retrieval.use_sparse,
+  settings.corpus.manifest_path, build_retriever/build_generator/build_llm/build_agent,
+  AgentResult.route/refused/answer.citations. Confirm against real M2/M3 modules.
+  Offline --dry-run + test suite do NOT touch this seam.
+
+OPEN ITEMS (carried)
+- Apply the 5 patches (S8's 4 + any pending) in the real repo, then:
+  make lint && make type && make test.
+- `make eval` (live) needs OPENAI_API_KEY + running Qdrant + FastEmbed egress;
+  offline dry-run + golden validation run without any of these.
+- Verify manifest ids arxiv-2408.00118 (Gemma 2) & arxiv-2501.12948 (DeepSeek-R1)
+  resolve to intended titles.
+- Install tiktoken (uv sync --extra eval) for exact token counts; else heuristic.
+
+NEXT: Session 9 — M5 (raise total coverage >= 70%, README/ARCHITECTURE/ADRs pass,
+  seeds, `docker compose up`, demo script, submission-ready).
+=== END CHECKPOINT ===

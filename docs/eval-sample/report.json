@@ -1,0 +1,3265 @@
+{
+  "generated_at": "2026-09-17T11:30:31+00:00",
+  "golden_set_size": 40,
+  "primary_k": 5,
+  "token_counts_exact": false,
+  "configs": [
+    {
+      "config_name": "hybrid",
+      "n_questions": 40,
+      "n_errors": 0,
+      "routing_accuracy": 1.0,
+      "routing_per_route": {
+        "concept_explanation": 1.0,
+        "paper_deep_dive": 1.0,
+        "compare_approaches": 1.0,
+        "recent_developments": 1.0,
+        "find_papers": 1.0,
+        "out_of_scope": 1.0
+      },
+      "routing_confusion": {
+        "concept_explanation": {
+          "concept_explanation": 7
+        },
+        "paper_deep_dive": {
+          "paper_deep_dive": 6
+        },
+        "compare_approaches": {
+          "compare_approaches": 6
+        },
+        "recent_developments": {
+          "recent_developments": 7
+        },
+        "find_papers": {
+          "find_papers": 6
+        },
+        "out_of_scope": {
+          "out_of_scope": 8
+        }
+      },
+      "retrieval_precision_at_k": {
+        "3": 1.0,
+        "5": 1.0,
+        "8": 1.0
+      },
+      "retrieval_recall_at_k": {
+        "3": 0.9641,
+        "5": 0.9948,
+        "8": 1.0
+      },
+      "retrieval_f1_primary": 0.9974,
+      "refusal": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "n": 40.0
+      },
+      "judge_faithfulness_rate": 1.0,
+      "judge_mean_score": 1.0,
+      "judge_parse_failures": 0,
+      "judge_n": 32,
+      "latency": {
+        "n": 40,
+        "mean_ms": 0.0,
+        "max_ms": 0.0,
+        "percentiles_ms": {
+          "50": 0.0,
+          "95": 0.0
+        }
+      },
+      "total_cost_usd": 0.000244,
+      "mean_cost_usd": 6e-06,
+      "total_input_tokens": 858,
+      "total_output_tokens": 192
+    },
+    {
+      "config_name": "dense_only",
+      "n_questions": 40,
+      "n_errors": 0,
+      "routing_accuracy": 1.0,
+      "routing_per_route": {
+        "concept_explanation": 1.0,
+        "paper_deep_dive": 1.0,
+        "compare_approaches": 1.0,
+        "recent_developments": 1.0,
+        "find_papers": 1.0,
+        "out_of_scope": 1.0
+      },
+      "routing_confusion": {
+        "concept_explanation": {
+          "concept_explanation": 7
+        },
+        "paper_deep_dive": {
+          "paper_deep_dive": 6
+        },
+        "compare_approaches": {
+          "compare_approaches": 6
+        },
+        "recent_developments": {
+          "recent_developments": 7
+        },
+        "find_papers": {
+          "find_papers": 6
+        },
+        "out_of_scope": {
+          "out_of_scope": 8
+        }
+      },
+      "retrieval_precision_at_k": {
+        "3": 1.0,
+        "5": 1.0,
+        "8": 1.0
+      },
+      "retrieval_recall_at_k": {
+        "3": 0.9641,
+        "5": 0.9948,
+        "8": 1.0
+      },
+      "retrieval_f1_primary": 0.9974,
+      "refusal": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "n": 40.0
+      },
+      "judge_faithfulness_rate": 1.0,
+      "judge_mean_score": 1.0,
+      "judge_parse_failures": 0,
+      "judge_n": 32,
+      "latency": {
+        "n": 40,
+        "mean_ms": 0.0,
+        "max_ms": 0.0,
+        "percentiles_ms": {
+          "50": 0.0,
+          "95": 0.0
+        }
+      },
+      "total_cost_usd": 0.000244,
+      "mean_cost_usd": 6e-06,
+      "total_input_tokens": 858,
+      "total_output_tokens": 192
+    }
+  ],
+  "per_question": {
+    "hybrid": [
+      {
+        "id": "concept-01",
+        "query": "What is retrieval-augmented generation and why does it help language models?",
+        "expected_route": "concept_explanation",
+        "predicted_route": "concept_explanation",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2005.11401",
+          "hf-agents-u03"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2005.11401",
+          "hf-agents-u03"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 28,
+        "output_tokens": 6,
+        "cost_usd": 8e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "concept-02",
+        "query": "Explain how chain-of-thought prompting improves reasoning in LLMs.",
+        "expected_route": "concept_explanation",
+        "predicted_route": "concept_explanation",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2201.11903",
+          "lillog-prompt-eng-2023-03"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2201.11903",
+          "lillog-prompt-eng-2023-03"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 26,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "concept-03",
+        "query": "How does the self-attention mechanism in the Transformer work?",
+        "expected_route": "concept_explanation",
+        "predicted_route": "concept_explanation",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-1706.03762",
+          "hf-nlp-ch01"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-1706.03762",
+          "hf-nlp-ch01"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 25,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "concept-04",
+        "query": "What is RLHF and how does it align language models with human preferences?",
+        "expected_route": "concept_explanation",
+        "predicted_route": "concept_explanation",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2203.02155",
+          "lillog-reward-hacking-2024-11"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2203.02155",
+          "lillog-reward-hacking-2024-11"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 28,
+        "output_tokens": 6,
+        "cost_usd": 8e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "concept-05",
+        "query": "What are LLM-powered autonomous agents?",
+        "expected_route": "concept_explanation",
+        "predicted_route": "concept_explanation",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "lillog-llm-agents-2023-06",
+          "hf-agents-u01"
+        ],
+        "retrieved_doc_ids": [
+          "lillog-llm-agents-2023-06",
+          "hf-agents-u01"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 19,
+        "output_tokens": 6,
+        "cost_usd": 6e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "concept-06",
+        "query": "Explain what LoRA is and how it makes fine-tuning efficient.",
+        "expected_route": "concept_explanation",
+        "predicted_route": "concept_explanation",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2106.09685",
+          "hf-nlp-ch03"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2106.09685",
+          "hf-nlp-ch03"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 24,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "concept-07",
+        "query": "What are extrinsic hallucinations in LLMs?",
+        "expected_route": "concept_explanation",
+        "predicted_route": "concept_explanation",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "lillog-extrinsic-hallucinations-2024-07"
+        ],
+        "retrieved_doc_ids": [
+          "lillog-extrinsic-hallucinations-2024-07"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 16,
+        "output_tokens": 6,
+        "cost_usd": 6e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "deepdive-01",
+        "query": "Give me a deep dive on the LoRA paper.",
+        "expected_route": "paper_deep_dive",
+        "predicted_route": "paper_deep_dive",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2106.09685"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2106.09685"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 15,
+        "output_tokens": 6,
+        "cost_usd": 6e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "deepdive-02",
+        "query": "Summarize the ReAct paper in detail.",
+        "expected_route": "paper_deep_dive",
+        "predicted_route": "paper_deep_dive",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2210.03629"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2210.03629"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 14,
+        "output_tokens": 6,
+        "cost_usd": 6e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "deepdive-03",
+        "query": "Walk me through the Constitutional AI paper.",
+        "expected_route": "paper_deep_dive",
+        "predicted_route": "paper_deep_dive",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2212.08073"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2212.08073"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 16,
+        "output_tokens": 6,
+        "cost_usd": 6e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "deepdive-04",
+        "query": "Explain the Mixtral of Experts paper.",
+        "expected_route": "paper_deep_dive",
+        "predicted_route": "paper_deep_dive",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2401.04088"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2401.04088"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 15,
+        "output_tokens": 6,
+        "cost_usd": 6e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "deepdive-05",
+        "query": "Do a deep dive on DeepSeek-R1.",
+        "expected_route": "paper_deep_dive",
+        "predicted_route": "paper_deep_dive",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2501.12948"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2501.12948"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 13,
+        "output_tokens": 6,
+        "cost_usd": 6e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "deepdive-06",
+        "query": "Tell me in detail about the Llama 2 paper.",
+        "expected_route": "paper_deep_dive",
+        "predicted_route": "paper_deep_dive",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2307.09288"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2307.09288"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 16,
+        "output_tokens": 6,
+        "cost_usd": 6e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "compare-01",
+        "query": "Compare KTO and SimPO for preference optimization.",
+        "expected_route": "compare_approaches",
+        "predicted_route": "compare_approaches",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2402.01306",
+          "arxiv-2405.14734"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2402.01306",
+          "arxiv-2405.14734"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 22,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "compare-02",
+        "query": "How do CRAG, RAFT, and GraphRAG differ as RAG enhancements?",
+        "expected_route": "compare_approaches",
+        "predicted_route": "compare_approaches",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2401.15884",
+          "arxiv-2403.10131",
+          "arxiv-2404.16130"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2401.15884",
+          "arxiv-2403.10131",
+          "arxiv-2404.16130"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 29,
+        "output_tokens": 6,
+        "cost_usd": 8e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "compare-03",
+        "query": "Contrast chain-of-thought prompting with DeepSeek-R1's RL-trained reasoning.",
+        "expected_route": "compare_approaches",
+        "predicted_route": "compare_approaches",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2201.11903",
+          "arxiv-2501.12948"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2201.11903",
+          "arxiv-2501.12948"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 28,
+        "output_tokens": 6,
+        "cost_usd": 8e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "compare-04",
+        "query": "Compare the Llama 3 and DeepSeek-V3 training recipes.",
+        "expected_route": "compare_approaches",
+        "predicted_route": "compare_approaches",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2407.21783",
+          "arxiv-2412.19437"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2407.21783",
+          "arxiv-2412.19437"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 23,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "compare-05",
+        "query": "Compare Self-Rewarding Language Models and SimPO for alignment.",
+        "expected_route": "compare_approaches",
+        "predicted_route": "compare_approaches",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2401.10020",
+          "arxiv-2405.14734"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2401.10020",
+          "arxiv-2405.14734"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 25,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "compare-06",
+        "query": "BitNet b1.58 versus FlashAttention-3 for efficiency \u2014 how do they differ?",
+        "expected_route": "compare_approaches",
+        "predicted_route": "compare_approaches",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2402.17764",
+          "arxiv-2407.08608"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2402.17764",
+          "arxiv-2407.08608"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 28,
+        "output_tokens": 6,
+        "cost_usd": 8e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "recent-01",
+        "query": "What are the latest developments in retrieval-augmented generation?",
+        "expected_route": "recent_developments",
+        "predicted_route": "recent_developments",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2401.15884",
+          "arxiv-2403.10131",
+          "arxiv-2404.16130"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2401.15884",
+          "arxiv-2403.10131",
+          "arxiv-2404.16130"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 31,
+        "output_tokens": 6,
+        "cost_usd": 8e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "recent-02",
+        "query": "What recent open-weight LLMs have been released?",
+        "expected_route": "recent_developments",
+        "predicted_route": "recent_developments",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2401.04088",
+          "arxiv-2404.14219",
+          "arxiv-2407.10671",
+          "arxiv-2407.21783",
+          "arxiv-2408.00118",
+          "arxiv-2412.19437"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2401.04088",
+          "arxiv-2404.14219",
+          "arxiv-2407.10671",
+          "arxiv-2407.21783",
+          "arxiv-2408.00118",
+          "arxiv-2412.19437"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 0.5,
+          "5": 0.8333,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 39,
+        "output_tokens": 6,
+        "cost_usd": 9e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "recent-03",
+        "query": "What's the newest research on reasoning in LLMs?",
+        "expected_route": "recent_developments",
+        "predicted_route": "recent_developments",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2501.12948"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2501.12948"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 17,
+        "output_tokens": 6,
+        "cost_usd": 6e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "recent-04",
+        "query": "Recent advances in model quantization and inference efficiency?",
+        "expected_route": "recent_developments",
+        "predicted_route": "recent_developments",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2402.17764",
+          "arxiv-2407.08608"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2402.17764",
+          "arxiv-2407.08608"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 25,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "recent-05",
+        "query": "What are the latest LLM evaluation benchmarks?",
+        "expected_route": "recent_developments",
+        "predicted_route": "recent_developments",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2403.04132",
+          "arxiv-2406.01574"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2403.04132",
+          "arxiv-2406.01574"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 21,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "recent-06",
+        "query": "Recent work on multimodal and long-context models?",
+        "expected_route": "recent_developments",
+        "predicted_route": "recent_developments",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2403.05530",
+          "arxiv-2404.02060"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2403.05530",
+          "arxiv-2404.02060"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 22,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "recent-07",
+        "query": "What recent papers cover preference optimization for alignment?",
+        "expected_route": "recent_developments",
+        "predicted_route": "recent_developments",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2402.01306",
+          "arxiv-2405.14734",
+          "arxiv-2401.10020"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2402.01306",
+          "arxiv-2405.14734",
+          "arxiv-2401.10020"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 30,
+        "output_tokens": 6,
+        "cost_usd": 8e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "find-01",
+        "query": "Recommend foundational papers to start learning about transformers.",
+        "expected_route": "find_papers",
+        "predicted_route": "find_papers",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-1706.03762",
+          "hf-nlp-ch01"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-1706.03762",
+          "hf-nlp-ch01"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 26,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "find-02",
+        "query": "Give me a reading list on alignment and preference optimization.",
+        "expected_route": "find_papers",
+        "predicted_route": "find_papers",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2203.02155",
+          "arxiv-2212.08073",
+          "arxiv-2402.01306",
+          "arxiv-2405.14734",
+          "arxiv-2401.10020"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2203.02155",
+          "arxiv-2212.08073",
+          "arxiv-2402.01306",
+          "arxiv-2405.14734",
+          "arxiv-2401.10020"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 0.6,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 39,
+        "output_tokens": 6,
+        "cost_usd": 9e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "find-03",
+        "query": "What should I read to understand AI agents, from basics to recent work?",
+        "expected_route": "find_papers",
+        "predicted_route": "find_papers",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2210.03629",
+          "lillog-llm-agents-2023-06",
+          "hf-agents-u01",
+          "arxiv-2405.15793"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2210.03629",
+          "lillog-llm-agents-2023-06",
+          "hf-agents-u01",
+          "arxiv-2405.15793"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 0.75,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 36,
+        "output_tokens": 6,
+        "cost_usd": 9e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "find-04",
+        "query": "Suggest a beginner reading list for RAG.",
+        "expected_route": "find_papers",
+        "predicted_route": "find_papers",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2005.11401",
+          "arxiv-2401.15884",
+          "hf-agents-u03"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2005.11401",
+          "arxiv-2401.15884",
+          "hf-agents-u03"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 24,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "find-05",
+        "query": "Which foundational papers should I read on reasoning?",
+        "expected_route": "find_papers",
+        "predicted_route": "find_papers",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2201.11903",
+          "arxiv-2501.12948"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2201.11903",
+          "arxiv-2501.12948"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 23,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "find-06",
+        "query": "Recommend papers on model efficiency and quantization.",
+        "expected_route": "find_papers",
+        "predicted_route": "find_papers",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2106.09685",
+          "arxiv-2402.17764",
+          "arxiv-2407.08608"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2106.09685",
+          "arxiv-2402.17764",
+          "arxiv-2407.08608"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 28,
+        "output_tokens": 6,
+        "cost_usd": 8e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "oos-01",
+        "query": "What's a good recipe for Hyderabadi biryani?",
+        "expected_route": "out_of_scope",
+        "predicted_route": "out_of_scope",
+        "route_correct": true,
+        "expect_refusal": true,
+        "refused": true,
+        "refusal_correct": true,
+        "is_retrieval": false,
+        "expected_doc_ids": [],
+        "retrieved_doc_ids": [],
+        "precision_at_k": {},
+        "recall_at_k": {},
+        "latency_ms": 0.0,
+        "input_tokens": 11,
+        "output_tokens": 0,
+        "cost_usd": 2e-06,
+        "judge": null,
+        "error": null
+      },
+      {
+        "id": "oos-02",
+        "query": "Who won the ICC Cricket World Cup in 2023?",
+        "expected_route": "out_of_scope",
+        "predicted_route": "out_of_scope",
+        "route_correct": true,
+        "expect_refusal": true,
+        "refused": true,
+        "refusal_correct": true,
+        "is_retrieval": false,
+        "expected_doc_ids": [],
+        "retrieved_doc_ids": [],
+        "precision_at_k": {},
+        "recall_at_k": {},
+        "latency_ms": 0.0,
+        "input_tokens": 11,
+        "output_tokens": 0,
+        "cost_usd": 2e-06,
+        "judge": null,
+        "error": null
+      },
+      {
+        "id": "oos-03",
+        "query": "Explain quantum chromodynamics in particle physics.",
+        "expected_route": "out_of_scope",
+        "predicted_route": "out_of_scope",
+        "route_correct": true,
+        "expect_refusal": true,
+        "refused": true,
+        "refusal_correct": true,
+        "is_retrieval": false,
+        "expected_doc_ids": [],
+        "retrieved_doc_ids": [],
+        "precision_at_k": {},
+        "recall_at_k": {},
+        "latency_ms": 0.0,
+        "input_tokens": 13,
+        "output_tokens": 0,
+        "cost_usd": 2e-06,
+        "judge": null,
+        "error": null
+      },
+      {
+        "id": "oos-04",
+        "query": "What's the weather forecast for Hyderabad tomorrow?",
+        "expected_route": "out_of_scope",
+        "predicted_route": "out_of_scope",
+        "route_correct": true,
+        "expect_refusal": true,
+        "refused": true,
+        "refusal_correct": true,
+        "is_retrieval": false,
+        "expected_doc_ids": [],
+        "retrieved_doc_ids": [],
+        "precision_at_k": {},
+        "recall_at_k": {},
+        "latency_ms": 0.0,
+        "input_tokens": 13,
+        "output_tokens": 0,
+        "cost_usd": 2e-06,
+        "judge": null,
+        "error": null
+      },
+      {
+        "id": "oos-05",
+        "query": "How do I file my income tax returns in India?",
+        "expected_route": "out_of_scope",
+        "predicted_route": "out_of_scope",
+        "route_correct": true,
+        "expect_refusal": true,
+        "refused": true,
+        "refusal_correct": true,
+        "is_retrieval": false,
+        "expected_doc_ids": [],
+        "retrieved_doc_ids": [],
+        "precision_at_k": {},
+        "recall_at_k": {},
+        "latency_ms": 0.0,
+        "input_tokens": 12,
+        "output_tokens": 0,
+        "cost_usd": 2e-06,
+        "judge": null,
+        "error": null
+      },
+      {
+        "id": "oos-06",
+        "query": "Write me a short poem about the monsoon.",
+        "expected_route": "out_of_scope",
+        "predicted_route": "out_of_scope",
+        "route_correct": true,
+        "expect_refusal": true,
+        "refused": true,
+        "refusal_correct": true,
+        "is_retrieval": false,
+        "expected_doc_ids": [],
+        "retrieved_doc_ids": [],
+        "precision_at_k": {},
+        "recall_at_k": {},
+        "latency_ms": 0.0,
+        "input_tokens": 10,
+        "output_tokens": 0,
+        "cost_usd": 1e-06,
+        "judge": null,
+        "error": null
+      },
+      {
+        "id": "oos-07",
+        "query": "What is the capital of France?",
+        "expected_route": "out_of_scope",
+        "predicted_route": "out_of_scope",
+        "route_correct": true,
+        "expect_refusal": true,
+        "refused": true,
+        "refusal_correct": true,
+        "is_retrieval": false,
+        "expected_doc_ids": [],
+        "retrieved_doc_ids": [],
+        "precision_at_k": {},
+        "recall_at_k": {},
+        "latency_ms": 0.0,
+        "input_tokens": 8,
+        "output_tokens": 0,
+        "cost_usd": 1e-06,
+        "judge": null,
+        "error": null
+      },
+      {
+        "id": "oos-08",
+        "query": "Give me stock market tips for 2026.",
+        "expected_route": "out_of_scope",
+        "predicted_route": "out_of_scope",
+        "route_correct": true,
+        "expect_refusal": true,
+        "refused": true,
+        "refusal_correct": true,
+        "is_retrieval": false,
+        "expected_doc_ids": [],
+        "retrieved_doc_ids": [],
+        "precision_at_k": {},
+        "recall_at_k": {},
+        "latency_ms": 0.0,
+        "input_tokens": 9,
+        "output_tokens": 0,
+        "cost_usd": 1e-06,
+        "judge": null,
+        "error": null
+      }
+    ],
+    "dense_only": [
+      {
+        "id": "concept-01",
+        "query": "What is retrieval-augmented generation and why does it help language models?",
+        "expected_route": "concept_explanation",
+        "predicted_route": "concept_explanation",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2005.11401",
+          "hf-agents-u03"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2005.11401",
+          "hf-agents-u03"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 28,
+        "output_tokens": 6,
+        "cost_usd": 8e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "concept-02",
+        "query": "Explain how chain-of-thought prompting improves reasoning in LLMs.",
+        "expected_route": "concept_explanation",
+        "predicted_route": "concept_explanation",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2201.11903",
+          "lillog-prompt-eng-2023-03"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2201.11903",
+          "lillog-prompt-eng-2023-03"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 26,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "concept-03",
+        "query": "How does the self-attention mechanism in the Transformer work?",
+        "expected_route": "concept_explanation",
+        "predicted_route": "concept_explanation",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-1706.03762",
+          "hf-nlp-ch01"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-1706.03762",
+          "hf-nlp-ch01"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 25,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "concept-04",
+        "query": "What is RLHF and how does it align language models with human preferences?",
+        "expected_route": "concept_explanation",
+        "predicted_route": "concept_explanation",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2203.02155",
+          "lillog-reward-hacking-2024-11"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2203.02155",
+          "lillog-reward-hacking-2024-11"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 28,
+        "output_tokens": 6,
+        "cost_usd": 8e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "concept-05",
+        "query": "What are LLM-powered autonomous agents?",
+        "expected_route": "concept_explanation",
+        "predicted_route": "concept_explanation",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "lillog-llm-agents-2023-06",
+          "hf-agents-u01"
+        ],
+        "retrieved_doc_ids": [
+          "lillog-llm-agents-2023-06",
+          "hf-agents-u01"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 19,
+        "output_tokens": 6,
+        "cost_usd": 6e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "concept-06",
+        "query": "Explain what LoRA is and how it makes fine-tuning efficient.",
+        "expected_route": "concept_explanation",
+        "predicted_route": "concept_explanation",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2106.09685",
+          "hf-nlp-ch03"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2106.09685",
+          "hf-nlp-ch03"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 24,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "concept-07",
+        "query": "What are extrinsic hallucinations in LLMs?",
+        "expected_route": "concept_explanation",
+        "predicted_route": "concept_explanation",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "lillog-extrinsic-hallucinations-2024-07"
+        ],
+        "retrieved_doc_ids": [
+          "lillog-extrinsic-hallucinations-2024-07"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 16,
+        "output_tokens": 6,
+        "cost_usd": 6e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "deepdive-01",
+        "query": "Give me a deep dive on the LoRA paper.",
+        "expected_route": "paper_deep_dive",
+        "predicted_route": "paper_deep_dive",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2106.09685"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2106.09685"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 15,
+        "output_tokens": 6,
+        "cost_usd": 6e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "deepdive-02",
+        "query": "Summarize the ReAct paper in detail.",
+        "expected_route": "paper_deep_dive",
+        "predicted_route": "paper_deep_dive",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2210.03629"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2210.03629"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 14,
+        "output_tokens": 6,
+        "cost_usd": 6e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "deepdive-03",
+        "query": "Walk me through the Constitutional AI paper.",
+        "expected_route": "paper_deep_dive",
+        "predicted_route": "paper_deep_dive",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2212.08073"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2212.08073"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 16,
+        "output_tokens": 6,
+        "cost_usd": 6e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "deepdive-04",
+        "query": "Explain the Mixtral of Experts paper.",
+        "expected_route": "paper_deep_dive",
+        "predicted_route": "paper_deep_dive",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2401.04088"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2401.04088"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 15,
+        "output_tokens": 6,
+        "cost_usd": 6e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "deepdive-05",
+        "query": "Do a deep dive on DeepSeek-R1.",
+        "expected_route": "paper_deep_dive",
+        "predicted_route": "paper_deep_dive",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2501.12948"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2501.12948"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 13,
+        "output_tokens": 6,
+        "cost_usd": 6e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "deepdive-06",
+        "query": "Tell me in detail about the Llama 2 paper.",
+        "expected_route": "paper_deep_dive",
+        "predicted_route": "paper_deep_dive",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2307.09288"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2307.09288"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 16,
+        "output_tokens": 6,
+        "cost_usd": 6e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "compare-01",
+        "query": "Compare KTO and SimPO for preference optimization.",
+        "expected_route": "compare_approaches",
+        "predicted_route": "compare_approaches",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2402.01306",
+          "arxiv-2405.14734"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2402.01306",
+          "arxiv-2405.14734"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 22,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "compare-02",
+        "query": "How do CRAG, RAFT, and GraphRAG differ as RAG enhancements?",
+        "expected_route": "compare_approaches",
+        "predicted_route": "compare_approaches",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2401.15884",
+          "arxiv-2403.10131",
+          "arxiv-2404.16130"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2401.15884",
+          "arxiv-2403.10131",
+          "arxiv-2404.16130"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 29,
+        "output_tokens": 6,
+        "cost_usd": 8e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "compare-03",
+        "query": "Contrast chain-of-thought prompting with DeepSeek-R1's RL-trained reasoning.",
+        "expected_route": "compare_approaches",
+        "predicted_route": "compare_approaches",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2201.11903",
+          "arxiv-2501.12948"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2201.11903",
+          "arxiv-2501.12948"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 28,
+        "output_tokens": 6,
+        "cost_usd": 8e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "compare-04",
+        "query": "Compare the Llama 3 and DeepSeek-V3 training recipes.",
+        "expected_route": "compare_approaches",
+        "predicted_route": "compare_approaches",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2407.21783",
+          "arxiv-2412.19437"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2407.21783",
+          "arxiv-2412.19437"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 23,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "compare-05",
+        "query": "Compare Self-Rewarding Language Models and SimPO for alignment.",
+        "expected_route": "compare_approaches",
+        "predicted_route": "compare_approaches",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2401.10020",
+          "arxiv-2405.14734"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2401.10020",
+          "arxiv-2405.14734"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 25,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "compare-06",
+        "query": "BitNet b1.58 versus FlashAttention-3 for efficiency \u2014 how do they differ?",
+        "expected_route": "compare_approaches",
+        "predicted_route": "compare_approaches",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2402.17764",
+          "arxiv-2407.08608"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2402.17764",
+          "arxiv-2407.08608"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 28,
+        "output_tokens": 6,
+        "cost_usd": 8e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "recent-01",
+        "query": "What are the latest developments in retrieval-augmented generation?",
+        "expected_route": "recent_developments",
+        "predicted_route": "recent_developments",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2401.15884",
+          "arxiv-2403.10131",
+          "arxiv-2404.16130"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2401.15884",
+          "arxiv-2403.10131",
+          "arxiv-2404.16130"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 31,
+        "output_tokens": 6,
+        "cost_usd": 8e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "recent-02",
+        "query": "What recent open-weight LLMs have been released?",
+        "expected_route": "recent_developments",
+        "predicted_route": "recent_developments",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2401.04088",
+          "arxiv-2404.14219",
+          "arxiv-2407.10671",
+          "arxiv-2407.21783",
+          "arxiv-2408.00118",
+          "arxiv-2412.19437"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2401.04088",
+          "arxiv-2404.14219",
+          "arxiv-2407.10671",
+          "arxiv-2407.21783",
+          "arxiv-2408.00118",
+          "arxiv-2412.19437"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 0.5,
+          "5": 0.8333,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 39,
+        "output_tokens": 6,
+        "cost_usd": 9e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "recent-03",
+        "query": "What's the newest research on reasoning in LLMs?",
+        "expected_route": "recent_developments",
+        "predicted_route": "recent_developments",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2501.12948"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2501.12948"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 17,
+        "output_tokens": 6,
+        "cost_usd": 6e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "recent-04",
+        "query": "Recent advances in model quantization and inference efficiency?",
+        "expected_route": "recent_developments",
+        "predicted_route": "recent_developments",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2402.17764",
+          "arxiv-2407.08608"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2402.17764",
+          "arxiv-2407.08608"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 25,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "recent-05",
+        "query": "What are the latest LLM evaluation benchmarks?",
+        "expected_route": "recent_developments",
+        "predicted_route": "recent_developments",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2403.04132",
+          "arxiv-2406.01574"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2403.04132",
+          "arxiv-2406.01574"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 21,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "recent-06",
+        "query": "Recent work on multimodal and long-context models?",
+        "expected_route": "recent_developments",
+        "predicted_route": "recent_developments",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2403.05530",
+          "arxiv-2404.02060"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2403.05530",
+          "arxiv-2404.02060"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 22,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "recent-07",
+        "query": "What recent papers cover preference optimization for alignment?",
+        "expected_route": "recent_developments",
+        "predicted_route": "recent_developments",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2402.01306",
+          "arxiv-2405.14734",
+          "arxiv-2401.10020"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2402.01306",
+          "arxiv-2405.14734",
+          "arxiv-2401.10020"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 30,
+        "output_tokens": 6,
+        "cost_usd": 8e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "find-01",
+        "query": "Recommend foundational papers to start learning about transformers.",
+        "expected_route": "find_papers",
+        "predicted_route": "find_papers",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-1706.03762",
+          "hf-nlp-ch01"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-1706.03762",
+          "hf-nlp-ch01"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 26,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "find-02",
+        "query": "Give me a reading list on alignment and preference optimization.",
+        "expected_route": "find_papers",
+        "predicted_route": "find_papers",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2203.02155",
+          "arxiv-2212.08073",
+          "arxiv-2402.01306",
+          "arxiv-2405.14734",
+          "arxiv-2401.10020"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2203.02155",
+          "arxiv-2212.08073",
+          "arxiv-2402.01306",
+          "arxiv-2405.14734",
+          "arxiv-2401.10020"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 0.6,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 39,
+        "output_tokens": 6,
+        "cost_usd": 9e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "find-03",
+        "query": "What should I read to understand AI agents, from basics to recent work?",
+        "expected_route": "find_papers",
+        "predicted_route": "find_papers",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2210.03629",
+          "lillog-llm-agents-2023-06",
+          "hf-agents-u01",
+          "arxiv-2405.15793"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2210.03629",
+          "lillog-llm-agents-2023-06",
+          "hf-agents-u01",
+          "arxiv-2405.15793"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 0.75,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 36,
+        "output_tokens": 6,
+        "cost_usd": 9e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "find-04",
+        "query": "Suggest a beginner reading list for RAG.",
+        "expected_route": "find_papers",
+        "predicted_route": "find_papers",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2005.11401",
+          "arxiv-2401.15884",
+          "hf-agents-u03"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2005.11401",
+          "arxiv-2401.15884",
+          "hf-agents-u03"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 24,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "find-05",
+        "query": "Which foundational papers should I read on reasoning?",
+        "expected_route": "find_papers",
+        "predicted_route": "find_papers",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2201.11903",
+          "arxiv-2501.12948"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2201.11903",
+          "arxiv-2501.12948"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 23,
+        "output_tokens": 6,
+        "cost_usd": 7e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "find-06",
+        "query": "Recommend papers on model efficiency and quantization.",
+        "expected_route": "find_papers",
+        "predicted_route": "find_papers",
+        "route_correct": true,
+        "expect_refusal": false,
+        "refused": false,
+        "refusal_correct": true,
+        "is_retrieval": true,
+        "expected_doc_ids": [
+          "arxiv-2106.09685",
+          "arxiv-2402.17764",
+          "arxiv-2407.08608"
+        ],
+        "retrieved_doc_ids": [
+          "arxiv-2106.09685",
+          "arxiv-2402.17764",
+          "arxiv-2407.08608"
+        ],
+        "precision_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "recall_at_k": {
+          "3": 1.0,
+          "5": 1.0,
+          "8": 1.0
+        },
+        "latency_ms": 0.0,
+        "input_tokens": 28,
+        "output_tokens": 6,
+        "cost_usd": 8e-06,
+        "judge": {
+          "supported_claims": 3,
+          "unsupported_claims": 0,
+          "uncited_claims": 0,
+          "faithful": true,
+          "score": 1.0,
+          "rationale": "Grounded.",
+          "parse_ok": true
+        },
+        "error": null
+      },
+      {
+        "id": "oos-01",
+        "query": "What's a good recipe for Hyderabadi biryani?",
+        "expected_route": "out_of_scope",
+        "predicted_route": "out_of_scope",
+        "route_correct": true,
+        "expect_refusal": true,
+        "refused": true,
+        "refusal_correct": true,
+        "is_retrieval": false,
+        "expected_doc_ids": [],
+        "retrieved_doc_ids": [],
+        "precision_at_k": {},
+        "recall_at_k": {},
+        "latency_ms": 0.0,
+        "input_tokens": 11,
+        "output_tokens": 0,
+        "cost_usd": 2e-06,
+        "judge": null,
+        "error": null
+      },
+      {
+        "id": "oos-02",
+        "query": "Who won the ICC Cricket World Cup in 2023?",
+        "expected_route": "out_of_scope",
+        "predicted_route": "out_of_scope",
+        "route_correct": true,
+        "expect_refusal": true,
+        "refused": true,
+        "refusal_correct": true,
+        "is_retrieval": false,
+        "expected_doc_ids": [],
+        "retrieved_doc_ids": [],
+        "precision_at_k": {},
+        "recall_at_k": {},
+        "latency_ms": 0.0,
+        "input_tokens": 11,
+        "output_tokens": 0,
+        "cost_usd": 2e-06,
+        "judge": null,
+        "error": null
+      },
+      {
+        "id": "oos-03",
+        "query": "Explain quantum chromodynamics in particle physics.",
+        "expected_route": "out_of_scope",
+        "predicted_route": "out_of_scope",
+        "route_correct": true,
+        "expect_refusal": true,
+        "refused": true,
+        "refusal_correct": true,
+        "is_retrieval": false,
+        "expected_doc_ids": [],
+        "retrieved_doc_ids": [],
+        "precision_at_k": {},
+        "recall_at_k": {},
+        "latency_ms": 0.0,
+        "input_tokens": 13,
+        "output_tokens": 0,
+        "cost_usd": 2e-06,
+        "judge": null,
+        "error": null
+      },
+      {
+        "id": "oos-04",
+        "query": "What's the weather forecast for Hyderabad tomorrow?",
+        "expected_route": "out_of_scope",
+        "predicted_route": "out_of_scope",
+        "route_correct": true,
+        "expect_refusal": true,
+        "refused": true,
+        "refusal_correct": true,
+        "is_retrieval": false,
+        "expected_doc_ids": [],
+        "retrieved_doc_ids": [],
+        "precision_at_k": {},
+        "recall_at_k": {},
+        "latency_ms": 0.0,
+        "input_tokens": 13,
+        "output_tokens": 0,
+        "cost_usd": 2e-06,
+        "judge": null,
+        "error": null
+      },
+      {
+        "id": "oos-05",
+        "query": "How do I file my income tax returns in India?",
+        "expected_route": "out_of_scope",
+        "predicted_route": "out_of_scope",
+        "route_correct": true,
+        "expect_refusal": true,
+        "refused": true,
+        "refusal_correct": true,
+        "is_retrieval": false,
+        "expected_doc_ids": [],
+        "retrieved_doc_ids": [],
+        "precision_at_k": {},
+        "recall_at_k": {},
+        "latency_ms": 0.0,
+        "input_tokens": 12,
+        "output_tokens": 0,
+        "cost_usd": 2e-06,
+        "judge": null,
+        "error": null
+      },
+      {
+        "id": "oos-06",
+        "query": "Write me a short poem about the monsoon.",
+        "expected_route": "out_of_scope",
+        "predicted_route": "out_of_scope",
+        "route_correct": true,
+        "expect_refusal": true,
+        "refused": true,
+        "refusal_correct": true,
+        "is_retrieval": false,
+        "expected_doc_ids": [],
+        "retrieved_doc_ids": [],
+        "precision_at_k": {},
+        "recall_at_k": {},
+        "latency_ms": 0.0,
+        "input_tokens": 10,
+        "output_tokens": 0,
+        "cost_usd": 1e-06,
+        "judge": null,
+        "error": null
+      },
+      {
+        "id": "oos-07",
+        "query": "What is the capital of France?",
+        "expected_route": "out_of_scope",
+        "predicted_route": "out_of_scope",
+        "route_correct": true,
+        "expect_refusal": true,
+        "refused": true,
+        "refusal_correct": true,
+        "is_retrieval": false,
+        "expected_doc_ids": [],
+        "retrieved_doc_ids": [],
+        "precision_at_k": {},
+        "recall_at_k": {},
+        "latency_ms": 0.0,
+        "input_tokens": 8,
+        "output_tokens": 0,
+        "cost_usd": 1e-06,
+        "judge": null,
+        "error": null
+      },
+      {
+        "id": "oos-08",
+        "query": "Give me stock market tips for 2026.",
+        "expected_route": "out_of_scope",
+        "predicted_route": "out_of_scope",
+        "route_correct": true,
+        "expect_refusal": true,
+        "refused": true,
+        "refusal_correct": true,
+        "is_retrieval": false,
+        "expected_doc_ids": [],
+        "retrieved_doc_ids": [],
+        "precision_at_k": {},
+        "recall_at_k": {},
+        "latency_ms": 0.0,
+        "input_tokens": 9,
+        "output_tokens": 0,
+        "cost_usd": 1e-06,
+        "judge": null,
+        "error": null
+      }
+    ]
+  },
+  "limitations": []
+}

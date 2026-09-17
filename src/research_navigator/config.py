@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from research_navigator.agents.settings import AgentSettings
+from research_navigator.eval.settings import EvalSettings
 
 from .chunk.settings import ChunkingSettings
 from .generate.settings import GenerateSettings
@@ -62,6 +63,12 @@ class LLMSettings(BaseModel):
     max_tokens: int = 1024
     api_key: str | None = None  # falls back to OPENAI_API_KEY env if None
     base_url: str | None = None  # set for an OpenAI-compatible OSS server
+    max_retries: int = Field(default=3, ge=0, description="Retries on 429/5xx before failing loud.")
+    retry_base_delay: float = Field(
+        default=2.0,
+        gt=0,
+        description="Exponential backoff base (seconds): delay = base * 2**attempt.",
+    )
 
 
 class LoggingSettings(BaseModel):
@@ -86,7 +93,8 @@ class Settings(BaseSettings):
     generate: GenerateSettings = Field(default_factory=GenerateSettings)
     llm: LLMSettings = Field(default_factory=LLMSettings)
     logging: LoggingSettings = Field(default_factory=LoggingSettings)
-    agents: AgentSettings = AgentSettings()
+    agents: AgentSettings = Field(default_factory=AgentSettings)
+    eval: EvalSettings = Field(default_factory=EvalSettings)
 
 
 @lru_cache(maxsize=1)
