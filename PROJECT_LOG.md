@@ -369,3 +369,109 @@ state; >=1 tool call (e.g. corpus-metadata lookup or date-math for recent_develo
 Retriever (M2) + Generator (M2) inside route nodes. Graph visualized for design notes. Each route
 exercised by >=3 test queries. VERIFY current LangGraph API signatures first.
 === END CHECKPOINT ===
+=== CHECKPOINT: Session 7 complete (M3 — LangGraph agent) ===
+
+PROJECT: AI Research Navigator — citation-grounded RAG + LangGraph agent over 50 AI/ML docs.
+STACK: Qdrant (v1.18.2 pinned; client 1.19.1), LangGraph (1.2.11 verified this session), Python 3.12.
+DONE: M0 setup; M1a parse; M1b chunk; M1c–M1f ingest (hybrid Qdrant collection);
+      M2 retrieval (query understanding + hybrid fusion); M2 generation (cited/refusing answers);
+      M3 agent (this session) -> router + 6 route nodes + tool layer over the M2 Generator.
+
+** Verified this session for S7: langgraph 1.2.11 (1.x). Stable API used ->
+   from langgraph.graph import StateGraph, START, END; from langgraph.graph.state import
+   CompiledStateGraph (generic over StateT, ContextT, InputT, OutputT). Nodes = plain
+   callables returning partial-state dicts; builder.add_node/add_edge/add_conditional_edges(
+   source, path_fn, mapping)/compile(); graph.invoke(); graph.get_graph().draw_mermaid()
+   (offline) / draw_mermaid_png() (mermaid.ink network). Re-verify eval-relevant APIs at S8. **
+
+COMPLETED THIS SESSION (M3 agent):
+- New package src/research_navigator/agents/ (9 files):
+  - state.py: Route(StrEnum) — the 6 official routes; values DOUBLE AS node names (single source
+    of truth, so router + wiring can't drift). ToolCall TypedDict. AgentState(TypedDict, total=False):
+    query, now_year, route, route_reason, route_confidence, tool_calls, answer, answer_text, refused
+    — all JSON primitives (serializable/checkpointable). StateUpdate = AgentState (partial dicts valid).
+    CompiledAgentGraph alias (TYPE_CHECKING) pins the 4-arg CompiledStateGraph generic in ONE place.
+  - settings.py: AgentSettings(BaseModel), nested under Settings.agents (env RN_AGENTS__*). All router
+    cue lists + confidences + recency window + find_papers_limit + OOS message here. NO hardcoding.
+  - tools.py: recency_cutoff(now, window) [pure date-math]; DocMeta (frozen); CorpusIndex
+    (from_manifest / from_rows over manifest rows -> corpus-swap safe). find(text/tags/content_types/
+    year_gte/year_lte/is_foundational/limit; AND across, ANY within, year-desc then title), match_tags
+    (infers filters from the corpus's OWN tag vocab), stats/latest_year. This is the ">=1 tool call".
+  - router.py: classify_by_rules() — deterministic, priority order find_papers > compare >
+    recent > deep_dive > concept; each hit carries a human-readable reason. Router.route() = rules
+    first, LLM fallback ONLY for ambiguous (via generate.llm LanguageModel protocol), then
+    concept_explanation default. No silent failure (unparseable LLM reply logged + falls through).
+  - nodes.py: Generating protocol (structural = M2 Generator.answer); AgentDeps (generator/corpus/
+    router/settings). Router node + 6 route nodes via factories. concept & compare = straight cited RAG;
+    recent = date-math + corpus-window tool calls + manifest-grounded preamble + recency RAG;
+    deep_dive = corpus-resolve tool + cited RAG; find_papers = DETERMINISTIC manifest query (NO LLM,
+    zero hallucination; empty -> graceful refuse); out_of_scope = fixed decline (no retrieval/LLM).
+    Tool calls recorded in state["tool_calls"].
+  - graph.py: START -> router --conditional on state["route"]--> {6 route nodes} -> END. compile()
+    validates every node/edge at build time. graph_mermaid(deps) renders offline.
+  - agent.py: Agent facade (run(query, now_year) -> AgentResult; route_of(); mermaid()). AgentResult
+    frozen dataclass (fully serializable) with .render() showing the route header.
+  - factory.py: build_agent(*, generator, manifest_path, llm, settings) -> Agent.
+  - __init__.py: package exports.
+- tests/test_agents.py: 23 hermetic tests (no network/qdrant/LLM/disk). FakeGenerator, FakeLLM,
+  ExplodingLLM (proves rules path never calls LLM), CorpusIndex.from_rows over 5 inline manifest rows.
+  Each of the 6 routes exercised by >=3 queries (acceptance met). Covers: rules table, find_papers>recent
+  priority, OOS via LLM fallback (cue-free), llm-disabled default, unparseable-reply fallback, all-6-invoke,
+  cited answer, refusal propagation, recency math, recent tool-calls+preamble, find_papers deterministic
+  (gen not called), find_papers empty-refuse, deep_dive resolve+generate, OOS skips generator, corpus
+  stats/find, JSON serializability of final state, graph compiles + mermaid renders, result render.
+- scripts/visualize_graph.py: writes docs/agent_graph.mmd (offline); --png optional (mermaid.ink network).
+  Uses a NullGenerator (topology is static; nodes never run during rendering) -> no Qdrant/embedder/API key.
+- docs/agent_graph.mmd: rendered graph artifact (START -> router -> 6 conditional routes -> END).
+- docs/adr/0007-m3-langgraph-agent.md: the S7 ADR (5 decisions, see below).
+- Patches to existing files (see patches/*.patch.md): pyproject.toml (+langgraph>=1.2,<2 dep + scoped
+  mypy override for agents.graph), config.py (+agents: AgentSettings field), cli.py (+`ask` full-agent
+  and +`route` routing-only commands), Makefile (+graph / graph-png targets).
+
+KEY DECISIONS / LOCKED (keep consistent) — recorded in ADR-0007:
+- Router = HYBRID (deterministic rules first, LLM fallback for ambiguous only), mirroring S5's
+  rules-first philosophy. Mis-route degrades to the M2 retrieval refusal gate -> graceful decline,
+  never fabrication. Cue-free out_of_scope relies on the LLM fallback (pure-rule OOS rejected as fragile).
+- find_papers is DETERMINISTIC from the manifest (no LLM) -> zero hallucination of titles/authors/years.
+  Never calls find() with no constraint (would return whole corpus); empty match refuses.
+- Serializable state = TypedDict(total=False) of JSON primitives; tool calls are plain dicts in
+  state["tool_calls"]. A test round-trips the final state through json.dumps.
+- recent_developments carries the required tool call as pure date-math (recency_cutoff) + a corpus
+  window count, with a manifest-grounded preamble (grounded, not model-asserted).
+- One scoped mypy suppression: disable_error_code=["call-overload"] for module
+  research_navigator.agents.graph ONLY (LangGraph's 8-way add_node overload with a bounded NodeInputT
+  TypeVar can't be inferred through a factory-produced Callable). Mirrors the existing cli.py Typer
+  carve-out; justified by compile() build-time validation + all-6-routes tests. The related type-arg
+  friction is fixed IN CODE via the single CompiledAgentGraph alias, not by suppression.
+
+CURRENT STATE:
+- Quality gates GREEN on the agents package + tests + script: ruff (repo select E,F,I,B,UP,SIM,C4,RUF)
+  clean; ruff format clean; mypy --strict clean (with the one scoped override in pyproject);
+  pytest 23 passed. All validated against real langgraph 1.2.11.
+- `make graph` renders docs/agent_graph.mmd offline. `research-navigator route "<q>"` works offline
+  (set RN_AGENTS__USE_LLM_ROUTER=false for zero-network routing).
+- Agent is wired but the FULL `ask` path still needs the live M2 stack: OPENAI_API_KEY + Qdrant up +
+  HF egress (FastEmbed). Routing + find_papers + out_of_scope run without any of that.
+
+OPEN ITEMS / TODO carried forward:
+- Curate the 20 held-out Qs from M2 acceptance into the M4 golden set (~40 Qs). The >=3-per-route
+  query tables already in test_agents.py (CONCEPT_Q/COMPARE_Q/RECENT_Q/DEEP_Q/FIND_Q/OOS_Q) are a
+  ready seed for the routing portion of the golden set.
+- Carried from M1a/M1b: verify manifest ids arxiv-2408.00118 (Gemma 2) & arxiv-2501.12948 (DeepSeek-R1).
+- ADR count for the rubric (>=5): ADR-0007 (this session) added. Confirm the running total in docs/adr/.
+- docs/OBSERVATIONS.md: prior notes (chunk_index re-embed on early edits; PDF no-headings/no-refs/column
+  interleaving) still stand — no new observations this session.
+- Run `make lint && make type && make test` in the real repo after applying the 4 patches (the sandbox
+  verified the code, but pyproject/config/cli/Makefile edits land in your repo).
+
+STOPPED AT: end of M3. The agent routes each query to one of 6 routes, reuses M2 Retriever+Generator in
+the route nodes, makes >=1 tool call, keeps serializable state, and the graph is rendered. Each route is
+covered by >=3 tests. Acceptance met.
+
+NEXT STEP (Session 8 = M4 eval harness): Build src/research_navigator/eval/. Golden set (~40 Qs) with
+expected route + relevance labels; retrieval P/R@k; citation-faithfulness LLM judge; refusal correctness
+(does it refuse when it should, answer when it should); latency/cost capture; a config comparison
+(e.g. fusion strategy / top_k / dense-only). `make eval` emits a JSON + Markdown report. Reuse the
+per-route query tables from test_agents.py as the routing seed. Re-verify any eval-relevant LangGraph /
+OpenAI APIs before writing code.
+=== END CHECKPOINT ===

@@ -19,6 +19,8 @@ from typing import Any
 
 import typer
 
+from research_navigator.agents import build_agent
+
 from .config import Settings, get_settings
 from .generate import build_generator, build_llm
 from .ingest.embedder import Embedder, build_embedder
@@ -194,6 +196,51 @@ def answer(
         settings=settings.generate,
     )
     typer.echo(generator.answer(query).render())
+
+
+@app.command()
+def ask(
+    query: str = typer.Argument(..., help="Your question."),
+    now_year: int | None = typer.Option(
+        None, "--now-year", help="Override 'current' year for recency routing/tests."
+    ),
+) -> None:
+    """Route the query through the M3 agent and print the (cited or refused) answer."""
+    settings = get_settings()
+    embedder, store = _wire(settings)
+    llm = build_llm(settings.llm)
+    retriever = build_retriever(
+        embedder=embedder,
+        searcher=store,
+        manifest_path=settings.paths.manifest,
+        settings=settings.retrieve,
+    )
+    generator = build_generator(retriever=retriever, llm=llm, settings=settings.generate)
+    # `llm` is reused for the router's ambiguous-query fallback (rules run first, no cost
+    # on the common path). Pass llm=None to force rules-only routing.
+    agent = build_agent(
+        generator=generator,
+        manifest_path=settings.paths.manifest,
+        llm=llm if settings.agents.use_llm_router else None,
+        settings=settings.agents,
+    )
+    result = agent.run(query, now_year=now_year)
+    typer.echo(result.render())
+
+
+@app.command()
+def route(
+    query: str = typer.Argument(..., help="Query to classify."),
+) -> None:
+    """Show ONLY the routing decision (route · reason · confidence) — no retrieval/LLM
+    answer generation. Useful for building the >=3-queries-per-route test table."""
+    settings = get_settings()
+    llm = build_llm(settings.llm) if settings.agents.use_llm_router else None
+    from research_navigator.agents import Router  # local import: routing needs no corpus
+
+    router = Router(settings=settings.agents, llm=llm)
+    route_name, reason, confidence = router.route(query)
+    typer.echo(f"{route_name}\t{confidence:.2f}\t{reason}")
 
 
 if __name__ == "__main__":

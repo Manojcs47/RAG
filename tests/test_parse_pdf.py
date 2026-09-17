@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import fitz
+import pymupdf
 
 from research_navigator.parse.models import SectionKind
 from research_navigator.parse.pdf import parse_pdf
 
 
 def _make_pdf(path: Path) -> None:
-    doc = fitz.open()
+    doc = pymupdf.open()
     page = doc.new_page()
     page.insert_text((72, 72), "Abstract", fontsize=14)
     page.insert_text(

@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-import fitz
+import pymupdf
 
 from research_navigator.common.types import ContentType
 from research_navigator.parse.models import Block, BlockType, ParsedDocument, Section, SectionKind
@@ -19,7 +19,7 @@ _CAPTION_RE = re.compile(r"^\s*(figure|fig\.|table)\s*\d", re.IGNORECASE)
 _BOLD_FLAG = 1 << 4
 
 
-def _iter_text_blocks(page: fitz.Page) -> tuple[list[dict[str, Any]], int]:
+def _iter_text_blocks(page: pymupdf.Page) -> tuple[list[dict[str, Any]], int]:
     """Return (text blocks with geometry+font, count of skipped image blocks)."""
     data = page.get_text("dict")
     blocks: list[dict[str, Any]] = []
@@ -96,7 +96,7 @@ def parse_pdf(doc_id: str, path: Path, title: str) -> ParsedDocument:
 
     ordered: list[dict[str, Any]] = []
     skipped_images = 0
-    with fitz.open(path) as doc:
+    with pymupdf.open(path) as doc:
         for page in doc:
             page_blocks, images = _iter_text_blocks(page)
             skipped_images += images

@@ -14,6 +14,8 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from research_navigator.agents.settings import AgentSettings
+
 from .chunk.settings import ChunkingSettings
 from .generate.settings import GenerateSettings
 from .retrieve.settings import RetrieveSettings
@@ -84,6 +86,7 @@ class Settings(BaseSettings):
     generate: GenerateSettings = Field(default_factory=GenerateSettings)
     llm: LLMSettings = Field(default_factory=LLMSettings)
     logging: LoggingSettings = Field(default_factory=LoggingSettings)
+    agents: AgentSettings = AgentSettings()
 
 
 @lru_cache(maxsize=1)

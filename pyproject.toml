@@ -17,6 +17,7 @@ dependencies = [
     "tokenizers>=0.23.2",
     "fastembed>=0.8.0",
     "openai>=3.14.1",
+    "langgraph>=1.2,<2",
 ]
 
 [project.scripts]
@@ -73,6 +74,13 @@ ignore_missing_imports = true
 module = "research_navigator.cli"
 disallow_untyped_decorators = false
 
+# PyMuPDF ships a py.typed marker but several of its own methods (e.g.
+# Page.get_text, the Document constructor) are themselves untyped, which trips
+# disallow_untyped_calls under strict mode for any caller.
+[[tool.mypy.overrides]]
+module = "research_navigator.parse.pdf"
+disallow_untyped_calls = false
+
 # ---------------------------------------------------------------------------
 # pytest + coverage
 # ---------------------------------------------------------------------------
@@ -86,3 +94,15 @@ markers = [
 [[tool.mypy.overrides]]
 module = ["fastembed.*", "tokenizers.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# LangGraph's `StateGraph.add_node` is an 8-way overload whose node parameter carries a
+# bounded TypeVar (`NodeInputT: TypedDictLike | DataclassLike | BaseModel`). mypy cannot
+# infer that bound when the node is supplied as a plain `Callable[[AgentState], ...]`
+# returned from a factory, so every add_node call reports `call-overload`. The wiring is
+# nonetheless correct: `AgentState` IS a TypedDict, and `StateGraph.compile()` validates
+# every node/edge at build time — a mis-wire fails loudly there, and test_agents.py
+# invokes all six routes. We therefore suppress ONLY this code, ONLY in the one wiring
+# module. See ADR-0007.
+module = "research_navigator.agents.graph"
+disable_error_code = ["call-overload"]

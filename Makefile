@@ -34,3 +34,11 @@ healthcheck:
 
 clean:
 	rm -rf .pytest_cache .mypy_cache .ruff_cache htmlcov .coverage
+
+.PHONY: graph
+graph:  ## Render the M3 agent graph to docs/agent_graph.mmd (offline)
+	uv run python scripts/visualize_graph.py
+
+.PHONY: graph-png
+graph-png:  ## Also render docs/agent_graph.png (uses mermaid.ink — needs network)
+	uv run python scripts/visualize_graph.py --png
