@@ -96,7 +96,7 @@ disallow_untyped_calls = false
 # ---------------------------------------------------------------------------
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra -m 'not integration' --cov=research_navigator --cov-report=term-missing"
+addopts = "-ra -m 'not integration' --cov=research_navigator --cov-report=term-missing --cov-fail-under=70"
 markers = [
     "integration: tests that require a running Qdrant (deselected by default).",
 ]

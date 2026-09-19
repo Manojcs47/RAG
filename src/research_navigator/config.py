@@ -76,6 +76,14 @@ class LoggingSettings(BaseModel):
     json_logs: bool = False
 
 
+class ReproducibilitySettings(BaseModel):
+    seed: int = Field(default=1234, ge=0, description="Global RNG seed (see common/seeds.py).")
+    seed_on_startup: bool = Field(
+        default=True,
+        description="Seed all RNGs from `seed` before any CLI command runs.",
+    )
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="RN_",
@@ -95,6 +103,7 @@ class Settings(BaseSettings):
     logging: LoggingSettings = Field(default_factory=LoggingSettings)
     agents: AgentSettings = Field(default_factory=AgentSettings)
     eval: EvalSettings = Field(default_factory=EvalSettings)
+    repro: ReproducibilitySettings = Field(default_factory=ReproducibilitySettings)
 
 
 @lru_cache(maxsize=1)

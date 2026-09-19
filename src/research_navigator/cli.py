@@ -21,6 +21,7 @@ from typing import Any
 import typer
 
 from research_navigator.agents import build_agent
+from research_navigator.common.seeds import seed_everything
 
 from .config import Settings, get_settings
 from .generate import build_generator, build_llm
@@ -37,6 +38,14 @@ from .retrieve import analyze as analyze_query
 from .retrieve import build_retriever
 
 app = typer.Typer(add_completion=False, help="AI Research Navigator CLI.")
+
+
+@app.callback()
+def _main() -> None:
+    """Runs before every command: pin RNG seeds for reproducibility (M5, ADR-0012)."""
+    settings = get_settings()
+    if settings.repro.seed_on_startup:
+        seed_everything(settings.repro.seed)
 
 
 @app.command()

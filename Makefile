@@ -35,7 +35,7 @@ healthcheck:
 clean:
 	rm -rf .pytest_cache .mypy_cache .ruff_cache htmlcov .coverage
 
-.PHONY: parse chunk prepare ingest reindex
+.PHONY: parse chunk prepare ingest reindex validate stats
 
 parse:  ## Parse the corpus (PDF+Markdown) -> data/parsed/*.json
 	uv run research-navigator parse
@@ -50,6 +50,12 @@ ingest:  ## Ingest data/chunks/*.json into Qdrant (needs `make prepare` first, a
 
 reindex:  ## Drop and rebuild the Qdrant collection from data/chunks/*.json
 	uv run research-navigator reindex --yes
+
+validate:  ## Validate the Qdrant collection against the corpus; exits non-zero on drift
+	uv run research-navigator validate
+
+stats:  ## Report chunk counts by content_type, year, and tags
+	uv run research-navigator stats
 
 .PHONY: graph
 graph:  ## Render the M3 agent graph to docs/agent_graph.mmd (offline)
@@ -66,3 +72,7 @@ eval:  ## Run the M4 evaluation over the golden set (needs Qdrant + OPENAI_API_K
 
 eval-dry-run:  ## Run the eval harness on in-repo fakes (offline, no external services)
 	uv run rn eval --dry-run
+
+.PHONY: demo
+demo:  ## Guided end-to-end demo: health -> stats -> one query per route -> refusal -> eval
+	bash scripts/demo.sh
